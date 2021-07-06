@@ -1,0 +1,58 @@
+* Standard header so every page has the same information available
+* number chars in bytes, color data, pattern data, map size data, map data
+	AORG >6000
+	DATA (PAT0-COL0)
+	DATA COL0,PAT0,MS0,MD0
+
+
+****************************************
+* Colorset Definitions                  
+****************************************
+COL0   DATA >1010,>1010,>10E1,>F131    ;
+COL1   DATA >1010,>10E1,>F113,>131C    ;
+COL2   DATA >1013,>E113,>1C31,>1C10    ;
+COL3   DATA >1010,>C11E,>1CE1,>31E1    ;
+COL4   DATA >1010,>1031,>C1E1,>1C13    ;
+COL5   DATA >1010,>1010,>1010,>1010    ;
+COL6   DATA >31C1,>F110,>10C1,>3110    ;
+COL7   DATA >1E31,>E131,>C131,>E110    ;
+COL8   DATA >1FE1,>3113,>E11C,>E1C1    ;
+COL9   DATA >F1E1,>C131,>C11C,>F110    ;
+COL10  DATA >1EF1,>F1C1,>10C1,>1010    ;
+COL11  DATA >F1E1,>E1F1,>10E1,>C1C1    ;
+COL12  DATA >F11C,>1EFC,>1C1C,>31E1    ;
+COL13  DATA >C1C1,>1313,>13E1,>1331    ;
+COL14  DATA >E1E1,>3113,>E11C,>C1C1    ;
+COL15  DATA >C113,>1E13,>E11C,>C1F1    ;
+****************************************
+* Character Patterns                    
+****************************************
+PAT0   DATA >FFFF,>FFFF,>FF01,>010E    ;
+PAT1   DATA >FFFF,>FF2D,>C172,>4E4A    ;
+PAT2   DATA >FFE0,>111D,>1B33,>E0FF    ;
+PAT3   DATA >FFFF,>2059,>0F06,>1015    ;
+PAT4   DATA >FFFF,>FF80,>E060,>4751    ;
+PAT5   DATA >FFFF,>FFFF,>FFFF,>FFFF    ;
+PAT6   DATA >0404,>04FF,>FF01,>08FF    ;
+PAT7   DATA >1C29,>4464,>A817,>03FF    ;
+PAT8   DATA >6A14,>4891,>1535,>0C04    ;
+PAT9   DATA >3010,>C0C4,>0A82,>10FF    ;
+PAT10  DATA >1B80,>44C0,>FF10,>FFFF    ;
+PAT11  DATA >1017,>0F0A,>FF07,>0604    ;
+PAT12  DATA >051A,>2B82,>2B05,>19D0    ;
+PAT13  DATA >0480,>C064,>2860,>6251    ;
+PAT14  DATA >1434,>0D84,>4534,>3341    ;
+PAT15  DATA >0106,>0B05,>E003,>8460    ;
+****************************************
+* Map Data                              
+****************************************
+MCOUNT DATA 1                          ;
+* == Map #0 ==                          
+MC0    DATA 0                          ;
+MS0    DATA >0005,>0003,>000F          ; Width, Height, Size
+* -- Map Row 0 --                       
+MD0    BYTE >00,>01,>02,>03,>04        ;
+* -- Map Row 1 --                       
+       BYTE >0B,>0C,>0D,>0E,>0F        ;
+* -- Map Row 2 --                       
+       BYTE >06,>07,>08,>09,>0A        ;

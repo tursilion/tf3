@@ -1,0 +1,35 @@
+6000	LOADER
+6002	EA#5 part 1 (warning: no header)
+6004	EA#5 part 2
+6006    EA#5 part 3
+6008	TF3TI00
+600A	TF3TI01
+600C	TF3TI02
+600E	TF3TI03
+6010	TF3TI04
+6012	TF3TI05
+6014	TF3TI06
+6016	TF3TI07
+6018	TF3TI08
+601A	TF3TI09
+601C	TF3TI10
+601E	TF3TI11
+6020	map_boss_unknown
+6022	map_bosscerberus
+6024	map_bossfish
+6026	map_bossfort
+6028	map_bossgargoyle
+602A	map_bosslobster
+602C	map_bossvulcan
+602E	map_briefing
+6030	map_briefingornbase
+6032	map_titleThird1
+6034	map_titleThird2
+6036	map_titleThird3
+6038	
+603A
+603C
+603E	LOADER
+
+Most banks, except the EA#5 ones, have lots of space free, but we did need more than 128k and 256k was the next legal size. But we'd probably want to pack better if we ever wanted to add scrolling level data (or double again to 512k).
+

@@ -1,0 +1,332 @@
+* Thunder Force III Tribute music player
+* 
+* I first saw Thunder Force III back in 1987 or 1988, and have been hooked on it since.
+* It's the reason I got a Sega Genesis, and I've always wanted my TI to do anything
+* even remotely close. A major part of my vgmcomp2 music converter was wanting to
+* be able to convert Genesis music, specifically for this sound track. So now, though
+* I don't intend to do the whole game, I've used my conversion toolchains to do
+* this little musical and graphical tribute.
+* 
+* There's a little over 64k of compressed music, and more than that in graphics, so
+* there's a lot of bank switching. Each song fits in a single bank guaranteed, so
+* that helps a lot. 
+*
+* I'm torn on making it run without needing the 32k memory expansion or not, since the
+* actual RAM usage would work in the scratchpad, but I worry about the CPU usage of the
+* player when every byte accessed actually takes a write and a read. All the paging would
+* be painful and I've already spent too long on this.
+*
+* Soooo... this program is going to be executing from 32K RAM and a separate loader cart
+* will exist.
+
+* bank definitions
+loader equ >6000
+ea5pt1 equ >6002
+ea5pt2 equ >6004
+ea5pt3 equ >6006
+tf3ti00 equ >6008
+tf3ti01 equ >600a
+tf3ti02 equ >600c
+tf3ti03 equ >600e
+tf3ti04 equ >6010
+tf3ti05 equ >6012
+tf3ti06 equ >6014
+tf3ti07 equ >6016
+tf3ti08 equ >6018
+tf3ti09 equ >601a
+tf3ti10 equ >601c
+tf3ti11 equ >601e
+mapbossunknown equ >6020
+mapbosscerberus equ >6022
+mapbossfish equ >6024
+mapbossfort equ >6026
+mapbossgargoyle equ >6028
+mapbosslobster equ >602a
+mapbossvulcan equ >602c
+mapbriefing equ >602e
+mapbriefingornbase equ >6030
+maptitlethird1 equ >6032
+maptitlethird2 equ >6034
+maptitlethird3 equ >6036
+
+	AORG >A000
+	DEF START
+	
+	B @START
+
+	COPY "tiSNonly.asm"
+
+*****************
+**	
+* VDP access
+*
+* Raw versions assume address is preswapped and pre-masked,
+* and do not attempt to preserve the value in R0
+*
+
+BIT01  DATA >0001
+QUITK  DATA >1100				* CRU value for QUIT
+
+**
+* VSBR - Read single byte at R0 into MSB R1
+VSBR	
+	SWPB R0
+VSBRRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	MOVB @>8800,R1		* read byte
+	B *R11
+
+**
+* VMBR - Read R2 bytes from VDP R0 to CPU R1
+* Destroys R1,R2
+VMBR
+	SWPB R0
+VMBRRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	COC @BIT01,R2		* check if odd
+	JNE VMBRLP			* jump if not
+	MOVB @>8800,*R1+	* read one byte
+	DEC R2				* count down
+	JEQ VMBREX			* jump ahead to exit if zero
+VMBRLP
+	MOVB @>8800,*R1+	* read two bytes
+	MOVB @>8800,*R1+
+	DECT R2				* count down by two
+	JNE VMBRLP			* loop till finished
+VMBREX
+	B *R11				* return
+	
+**
+* VSBW - Write single byte to R0 from MSB R1
+* Destroys R0 (actually just oRs it)
+VSBW
+	ORI R0,>4000		* mask in write bit
+	SWPB R0
+VSBWRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* write address
+	MOVB R1,@>8C00		* write data
+	B *R11
+
+**
+* V2BW - Write two bytes to R0 from R1
+* Destroys R0 (actually just oRs it)
+V2BW
+	ORI R0,>4000
+	SWPB R0
+V2BWRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	MOVB R1,@>8C00		* write data 1
+	SWPB R1
+	MOVB R1,@>8C00		* write data 2
+	B *R11
+
+**
+* V2BR - Reads two bytes from R0 to R1
+V2BR
+	SWPB R0
+V2BRRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	MOV R0,R0			* delay
+	MOVB @>8800,R1		* read first byte
+	SWPB R1
+	MOVB @>8800,R1		* read second byte
+	SWPB R1
+	B *R11
+
+**
+* VMBW - Write R2 bytes from CPU R1 to VDP R0
+* Destroys R0,R1,R2
+VMBW
+	ORI R0,>4000
+	SWPB R0
+VMBWRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	COC @BIT01,R2		* Check for odd length
+	JNE VMBWLP			* jump to x2 loop if not odd
+	MOVB *R1+,@>8C00	* copy one byte
+	DEC R2				* count down
+	JEQ VMBWEX			* jump to exit if done
+VMBWLP
+	MOVB *R1+,@>8C00	* write one byte
+	MOVB *R1+,@>8C00	* write two bytes
+	DECT R2				* count down
+	JNE VMBWLP			* loop till finished
+VMBWEX
+	B *R11
+	
+**
+* VMBS - Set R2 bytes from R1 MSB to VDP R0
+* Destroys R0,R1,R2
+VMBS
+	ORI R0,>4000
+	SWPB R0
+VMBSRAW
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* set address
+	COC @BIT01,R2		* Check for odd length
+	JNE VMBSLP			* jump to x2 loop if not odd
+	MOVB R1,@>8C00		* copy once
+	DEC R2				* count down
+	JEQ VMBSEX			* jump to exit if done
+VMBSLP
+	MOVB R1,@>8C00		* write byte
+	MOVB R1,@>8C00		* write second byte
+	DECT R2				* count down
+	JNE VMBSLP			* loop till finished
+VMBSEX
+	B *R11
+
+**
+* VDPWA - Write address or register
+VDPWA
+	SWPB R0
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02		* write address
+	B *R11  
+	
+**
+* LOADRG - load regs list to VDP address, end on >0000 and 
+* write >D0 (for sprites) (so second to last entry is write address for sprite table)
+* address of table in R1 (destroyed)
+LOADRG
+LOADLP
+	MOV *R1+,R0
+	JEQ LDRDN
+	SWPB R0
+	MOVB R0,@>8C02
+	SWPB R0
+	MOVB R0,@>8C02
+	JMP LOADLP
+LDRDN
+	LI R1,>D000
+	MOVB R1,@>8C00
+	B *R11
+
+***
+
+* wait r4 jiffies - this one ALSO calls the sound player
+* this one, you can safely set r4 to 0
+* ** BIG WARNING ** - this changes ROM bank to R15 for the music!
+delay
+* This quit test copied from the console ROM
+	LI R12,>0024 		* Load CRU
+	LDCR @>0012,3
+	SRC R12,7			* delay
+	LI R12,>0006
+	STCR R5,8 			* Fetch CRU
+	CZC @QUITK,R5 		* QUIT key?
+	JNE MENUKY
+	BLWP @>0000			* reboot if yes
+MENUKY
+	clr r12				* test CRU VDP interface
+	tb 2
+	jeq delay
+	movb @>8802,r12
+	
+	mov r15,*r15		* bank switch (or nothing if cleared)
+	jeq noSong
+	
+	lwpi >8300
+	bl @SongLoop		* play music
+	lwpi >8320
+noSong 
+
+	dec r4
+	jgt delay
+	b *r11
+
+* r3 - bitmap VDP offset for color and pattern
+* r4 - page to read data (data comes from page header)
+loadpagevdp
+	mov r11,r10			* save return
+	mov r4,*r4			* bank switch
+	mov r3,r0			* address to write pattern
+	mov @>6004,r1		* pattern table in ROM
+	mov @>6000,r2		* number of bytes of chars
+	bl @vmbw
+	ai r0,>2000			* address to write color
+	mov @>6002,r1		* color table in ROM
+	mov @>6000,r2		* number of bytes
+	bl @vmbw
+	b *r10				* chars loaded
+	
+
+********************* MAIN CODE HERE **********************
+
+START
+
+* turn VDP back off again (assumes that loader already set up bitmap)
+* turn on with >81E2
+	li r0,>81A2
+	bl @VDPWA
+	
+* now switch to our alternate workspace
+	lwpi >8320
+	
+* init the music player by calling StopSong
+	clr r15					* r15 will hold the song bank
+	bl @StopSong
+	
+* clear the screen again
+	li r0,>1800
+	clr r1
+	li r2,>300
+	bl @VMBS
+	
+* first, we need to load up the title page. There are three banks involved
+	clr r3					* pattern offset
+	li r4,maptitlethird1	* page
+	bl @loadpagevdp
+	li r0,>1800				* SIT address
+	mov @>6008,r1			* ROM address
+	li r2,256				* 1/3rd of background screen
+	bl @vmbw
+	
+	ai r3,>0800
+	li r4,maptitlethird2	* page
+	bl @loadpagevdp
+	li r0,>1900				* SIT address
+	mov @>6008,r1			* ROM address
+	li r2,256				* 1/3rd of background screen
+	bl @vmbw
+	
+	ai r3,>0800
+	li r4,maptitlethird3	* page
+	bl @loadpagevdp
+	li r0,>1A00				* SIT address
+	mov @>6008,r1			* ROM address
+	li r2,256				* 1/3rd of background screen
+	bl @vmbw
+	
+* initialize the title music
+	li r15,tf3ti00
+	mov r15,*r15
+	li r1,>6000
+	clr r2
+	bl @StartSong
+	
+* that's good, now we can turn on the screen and start the music
+	li r0,>81E2
+	bl @VDPWA
+	
+lp
+	clr r4
+	bl @delay
+	jmp lp
+	
+	END
+	

@@ -1,0 +1,111 @@
+* Standard header so every page has the same information available
+* number chars in bytes, color data, pattern data, map size data, map data
+	AORG >6000
+	DATA (PAT0-COL0)
+	DATA COL0,PAT0,MS0,MD0
+
+
+****************************************
+* Colorset Definitions                  
+****************************************
+COL0   DATA >1010,>1010,>1010,>1010    ;
+COL1   DATA >F1F1,>F1F1,>F1F1,>F1F1    ;
+COL2   DATA >F110,>1010,>1010,>1010    ;
+COL3   DATA >1010,>1010,>1010,>10F1    ;
+COL4   DATA >F1F1,>F1F1,>1F1F,>1FF0    ;
+COL5   DATA >1F1F,>1F1F,>1F1F,>F0F0    ;
+COL6   DATA >1010,>10F1,>1F1F,>F0F0    ;
+COL7   DATA >1010,>10F1,>F1F1,>F110    ;
+COL8   DATA >F1F1,>F110,>1010,>1010    ;
+COL9   DATA >F0F0,>F0F0,>1F1F,>F1F1    ;
+COL10  DATA >F0F0,>F0F0,>1F1F,>1F1F    ;
+COL11  DATA >F0F0,>F0F0,>F0F0,>F0F0    ;
+COL12  DATA >F0F0,>F0F0,>F01F,>1F1F    ;
+COL13  DATA >1F1F,>1FF0,>F0F0,>F0F0    ;
+COL14  DATA >1010,>1FF0,>F0F0,>F0F0    ;
+COL15  DATA >101F,>F0F0,>F0F0,>F0F0    ;
+COL16  DATA >1010,>10F1,>1F1F,>1F1F    ;
+COL17  DATA >F1F1,>F1F1,>F1F1,>F110    ;
+COL18  DATA >F110,>1010,>1010,>1010    ;
+COL19  DATA >1F1F,>1010,>F11F,>1FF1    ;
+COL20  DATA >F0F0,>1F1F,>F0F0,>F0F0    ;
+COL21  DATA >1F1F,>1F1F,>1F1F,>1FF0    ;
+COL22  DATA >1010,>1010,>10F1,>F1F1    ;
+COL23  DATA >F1F1,>1F1F,>1FF0,>F0F0    ;
+COL24  DATA >1010,>1010,>10F1,>1010    ;
+COL25  DATA >1010,>1010,>1010,>F1F1    ;
+COL26  DATA >F1F1,>F11F,>1F1F,>F0F0    ;
+COL27  DATA >F1F1,>1F1F,>1FF0,>F0F0    ;
+COL28  DATA >1F1F,>1F1F,>1F1F,>1F1F    ;
+COL29  DATA >F1F1,>F1F1,>F110,>1010    ;
+COL30  DATA >1F1F,>1F1F,>1F1F,>1F1F    ;
+COL31  DATA >F0F0,>1F1F,>1F1F,>F1F1    ;
+COL32  DATA >F11F,>1FF1,>F1F1,>F1F1    ;
+COL33  DATA >F0F0,>F0F0,>F0F0,>F01F    ;
+COL34  DATA >1F1F,>1F1F,>F0F0,>F01F    ;
+****************************************
+* Character Patterns                    
+****************************************
+PAT0   DATA >FFFF,>FFFF,>FFFF,>FFFF    ;
+PAT1   DATA >0103,>0E1C,>1C38,>3838    ;
+PAT2   DATA >80FF,>FFFF,>FFFF,>FFFF    ;
+PAT3   DATA >FFFF,>FFFF,>FFFF,>FF01    ;
+PAT4   DATA >0303,>0307,>C0C0,>80FF    ;
+PAT5   DATA >0101,>0101,>0101,>FFFF    ;
+PAT6   DATA >FFFF,>FF07,>C080,>FFFF    ;
+PAT7   DATA >FFFF,>FF80,>C0E0,>80FF    ;
+PAT8   DATA >0707,>01FF,>FFFF,>FFFF    ;
+PAT9   DATA >FFFF,>FFFF,>C0C8,>1313    ;
+PAT10  DATA >FFFF,>FFFF,>2040,>C0C0    ;
+PAT11  DATA >FFFF,>FFFF,>FFFF,>FFFF    ;
+PAT12  DATA >FFFF,>FFFF,>FF04,>0424    ;
+PAT13  DATA >0101,>01FF,>FFFF,>FFFF    ;
+PAT14  DATA >FFFF,>10FF,>FFFF,>FFFF    ;
+PAT15  DATA >FF0F,>FFFF,>FFFF,>FFFF    ;
+PAT16  DATA >FFFF,>FFC0,>0101,>0103    ;
+PAT17  DATA >0E0E,>0E06,>0404,>04FF    ;
+PAT18  DATA >01FF,>FFFF,>FFFF,>FFFF    ;
+PAT19  DATA >E0C0,>FFFF,>07E0,>E001    ;
+PAT20  DATA >FFFF,>8080,>FFFF,>FFFF    ;
+PAT21  DATA >1E0F,>0F07,>0301,>01FF    ;
+PAT22  DATA >FFFF,>FFFF,>FF01,>0101    ;
+PAT23  DATA >7878,>0303,>01FF,>FFFF    ;
+PAT24  DATA >FFFF,>FFFF,>FF80,>FFFF    ;
+PAT25  DATA >FFFF,>FFFF,>FFFF,>0307    ;
+PAT26  DATA >0303,>0F80,>8080,>FFFF    ;
+PAT27  DATA >80C1,>3870,>60FF,>FFFF    ;
+PAT28  DATA >0301,>0307,>0707,>0301    ;
+PAT29  DATA >1B0B,>0901,>01FF,>FFFF    ;
+PAT30  DATA >C0C0,>E0E0,>E0E0,>E0E0    ;
+PAT31  DATA >FFFF,>0101,>0101,>1E06    ;
+PAT32  DATA >1DE0,>E00F,>0301,>0103    ;
+PAT33  DATA >FFFF,>FFFF,>FFFF,>FF1C    ;
+PAT34  DATA >0303,>0101,>FFFF,>FF1E    ;
+****************************************
+* Map Data                              
+****************************************
+MCOUNT DATA 1                          ;
+* == Map #0 ==                          
+MC0    DATA 0                          ;
+MS0    DATA >000E,>0007,>0062          ; Width, Height, Size
+* -- Map Row 0 --                       
+MD0    DATA >0000,>0000,>0001,>0200    ;
+       DATA >0000,>0000,>0000          ;
+* -- Map Row 1 --                       
+       DATA >0000,>0000,>1617,>1800    ;
+       DATA >0000,>0000,>0000          ;
+* -- Map Row 2 --                       
+       DATA >0000,>0003,>0405,>0607    ;
+       DATA >0000,>0000,>0000          ;
+* -- Map Row 3 --                       
+       DATA >0000,>191A,>0B0B,>0B1B    ;
+       DATA >1C00,>0000,>0000          ;
+* -- Map Row 4 --                       
+       DATA >0000,>0809,>0A0B,>0C0B    ;
+       DATA >0D0E,>0F10,>0000          ;
+* -- Map Row 5 --                       
+       DATA >0000,>001D,>1E1F,>2021    ;
+       DATA >0B0B,>0B22,>0000          ;
+* -- Map Row 6 --                       
+       DATA >0000,>0000,>1112,>1314    ;
+       DATA >0B0B,>0B15,>0000          ;
