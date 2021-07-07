@@ -66,6 +66,7 @@ maptitlethird3 equ >6036
 
 BIT01  DATA >0001
 QUITK  DATA >1100				* CRU value for QUIT
+SCRNBUF	BSS 11*32
 
 **
 * VSBR - Read single byte at R0 into MSB R1
@@ -265,6 +266,51 @@ loadpagevdp
 	b *r10				* chars loaded
 	
 
+* draw the ship at any X overlaid on the background into a CPU buffer
+* R0 - target CPU address
+* R1 - source CPU address for background row (must be paged already)
+* R2 - number of rows to copy
+* R3 - X offset of the ship (assumed to start at >7005 and be 22 chars wide)
+* uses R4,R5,R6
+* All kinds of assumptions about the data layout made here
+shipdraw
+* first, fast copy of background data, so we can get away with fewer compares
+	mov r0,r4
+	mov r1,r5
+	mov r2,r6
+	sla r6,2			* make it groups of 8 instead of 32
+sdl1
+	mov *r5+,*r4+
+	mov *r5+,*r4+
+	mov *r5+,*r4+
+	mov *r5+,*r4+
+	dec r6
+	jne sdl1
+	
+* now, we have to do a byte by byte copy of the ship, checking for zero
+* the ship data IS 32 bytes wide, but we only need to check 22, so we'll fake the
+* loop that way. We just adjust bytes to rows
+	a r3,r0			* target
+	ai r1,(32*8)+5	* we should start exactly one section down, plus 5 for the start of ship data
+	
+sdl2
+	li r3,22		* we can reuse r3 now
+sdl4
+	movb *r1+,r4	* what is the byte?
+	jeq sdl3		* skip ahead if nul
+	movb r4,*r0		* else copy it
+sdl3
+	inc r0			* update target either way
+	dec r3
+	jne sdl4		* finish the row
+	
+	ai r0,10
+	ai r1,10		* wrap around to start of next row
+	dec r2			* count down rows
+	jne sdl2
+	
+	b *r11			* all done
+
 ********************* MAIN CODE HERE **********************
 
 START
@@ -322,6 +368,101 @@ START
 * that's good, now we can turn on the screen and start the music
 	li r0,>81E2
 	bl @VDPWA
+	
+* first, a brief pause before the ship appears
+	li r4,120
+	bl @delay
+	
+
+* now we are going to flicker the ship in from left to right until it is centered
+* the ship starts at row 12 and is 11 rows high
+* rows 12-15 are in group 2, and 16-22 are in group 3 (different banks)
+* it is 22 characters wide with 5 cells of gap on each side
+* we also have to not draw 0-filled cells
+* so this is only 10 frames, meaning we'll have to flicker a bit in place
+* draw at 0,10, 1,9, 2,8, 3,7, 4,6, and finally 5
+*
+* We'll double buffer it to reduce the odds of unintended flicker, hopefully the
+* work and blit will be quick enough - SCRNBUFis 22*32 bytes
+*
+	clr r13						* x coordinate (for left side)
+	li r14,12					* frames to count
+	
+* draw the ship flickering at x=r13, then x=10-r13
+shiplp
+* first the left version, group 2 (last 4 rows)
+	mov r0,@maptitlethird2		* bank it in
+	li r0,SCRNBUF				* target address
+	mov @>6008,r1				* map data for group 2 (first group is bg, last group is ship)
+	ai r1,32*4					* skip to row 4 (which is really row 12, cause group 2)
+	li r2,4						* copy 4 rows
+	mov r13,r3					* ship offset
+	bl @shipdraw				* fill the buffer with background
+	li r0,>1900+(4*32)			* second third VDP
+	li r1,SCRNBUF				* buffer we just made
+	li r2,32*4					* 4 rows
+	bl @vmbw					* get thee to VDP
+
+* then group 3, 7 rows
+	mov r0,@maptitlethird3		* bank it in
+	li r0,SCRNBUF				* target address
+	mov @>6008,r1				* map data for group 2 (first group is bg, last group is ship)
+	li r2,7						* copy 7 rows
+	mov r13,r3					* ship offset
+	bl @shipdraw				* fill the buffer with background
+	li r0,>1A00					* third third VDP
+	li r1,SCRNBUF				* buffer we just made
+	li r2,32*7					* 7 rows
+	bl @vmbw					* get thee to VDP
+	
+	clr r4
+	bl @delay					* frame delay
+	ci r13,5					* silly to do this every time, but easy to get the last frame drawn ;)
+	jeq shipdn
+	
+* now we need to do the same thing, but on the RIGHT side. We can skip the check for r13 though
+* group 2 (last 4 rows)
+	mov r0,@maptitlethird2		* bank it in
+	li r0,SCRNBUF				* target address
+	mov @>6008,r1				* map data for group 2 (first group is bg, last group is ship)
+	ai r1,32*4					* skip to row 4 (which is really row 12, cause group 2)
+	li r2,4						* copy 4 rows
+	li r3,10					* ship far right
+	s r13,r3					* ship offset
+	bl @shipdraw				* fill the buffer with background
+	li r0,>1900+(4*32)			* second third VDP
+	li r1,SCRNBUF				* buffer we just made
+	li r2,32*4					* 4 rows
+	bl @vmbw					* get thee to VDP
+
+* then group 3, 7 rows
+	mov r0,@maptitlethird3		* bank it in
+	li r0,SCRNBUF				* target address
+	mov @>6008,r1				* map data for group 2 (first group is bg, last group is ship)
+	li r2,7						* copy 7 rows
+	li r3,10					* ship far right
+	s r13,r3					* ship offset
+	bl @shipdraw				* fill the buffer with background
+	li r0,>1A00					* third third VDP
+	li r1,SCRNBUF				* buffer we just made
+	li r2,32*7					* 7 rows
+	bl @vmbw					* get thee to VDP
+	
+	clr r4
+	bl @delay					* frame delay
+
+* count down and move if needed
+	dec r14						* count down here
+	jne shiplp
+	
+	li r14,10					* reload it
+	inc r13						* next step
+	jmp shiplp					* and draw it either way (escape is right after the first delay)
+
+shipdn
+	
+
+
 	
 lp
 	clr r4

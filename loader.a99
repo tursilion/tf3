@@ -474,11 +474,8 @@ MCOUNT DATA 1                          ;
 * == Map #0 ==                          
 MC0    DATA 0                          ;
 MS0    DATA >0020,>0018,>0300          ; Width, Height, Size
-* -- Map Row 0 --                       
-MD0    DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
+* -- Map Row 0 -- (removed, was emtpy)
+MD0
 * -- Map Row 1 --                       
        DATA >7273,>7475,>7677,>7879    ;
        DATA >7A7B,>7C7D,>7E7F,>8081    ;
@@ -559,42 +556,77 @@ MD0    DATA >0000,>0000,>0000,>0000    ;
        DATA >6F2C,>7071,>0000,>0000    ;
        DATA >0000,>0000,>0000,>0000    ;
        DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 17 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 18 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 19 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 20 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 21 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 22 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-* -- Map Row 23 --                      
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-       DATA >0000,>0000,>0000,>0000    ;
-	
+
+* as listed, characters from 64 to 85 only (alphabet)
+* space is @, period is H, and Q is Y. Not available:
+* H,J,K,V,W,X,Z
+* HAND EDITED FOR LABELS, SO THEY DON'T CONFLICT
+****************************************
+* CLICorset Definitions                  
+****************************************
+CLIC64  DATA >1010,>1010,>1010,>1010    ;
+CLIC65  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC66  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC67  DATA >1F1F,>1FF1,>1F1F,>1F10    ;
+CLIC68  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC69  DATA >1FF1,>F11F,>F1F1,>1F10    ;
+CLIC70  DATA >1FF1,>F11F,>F1F1,>F110    ;
+CLIC71  DATA >1F1F,>F11F,>1F1F,>1F10    ;
+CLIC72  DATA >1010,>1010,>10F1,>F110    ;
+CLIC73  DATA >F1F1,>F1F1,>F1F1,>F110    ;
+CLIC74  DATA >1010,>1010,>1010,>1010    ;
+CLIC75  DATA >1010,>1010,>1010,>1010    ;
+CLIC76  DATA >F1F1,>F1F1,>F1F1,>1F10    ;
+CLIC77  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC78  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC79  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC80  DATA >1F1F,>1F1F,>F1F1,>F110    ;
+CLIC81  DATA >1F1F,>1FF1,>F1F1,>F110    ;
+CLIC82  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+CLIC83  DATA >1F1F,>F11F,>F11F,>1F10    ;
+CLIC84  DATA >1FF1,>F1F1,>F1F1,>F110    ;
+CLIC85  DATA >1F1F,>1F1F,>1F1F,>1F10    ;
+****************************************
+* Character PLICterns                    
+****************************************
+PLIC64  DATA >FFFF,>FFFF,>FFFF,>FFFF    ;
+PLIC65  DATA >8339,>3939,>0139,>39FF    ;
+PLIC66  DATA >0339,>3903,>3939,>03FF    ;
+PLIC67  DATA >0139,>39C0,>3939,>01FF    ;
+PLIC68  DATA >0339,>3939,>3939,>03FF    ;
+PLIC69  DATA >01C0,>C003,>C0C0,>01FF    ;
+PLIC70  DATA >01C0,>C003,>C0C0,>C0FF    ;
+PLIC71  DATA >0139,>C031,>3939,>01FF    ;
+PLIC72  DATA >FFFF,>FFFF,>FF60,>60FF    ;
+PLIC73  DATA >3838,>3838,>3838,>38FF    ;
+PLIC74  DATA >0004,>0404,>0404,>4438    ;
+PLIC75  DATA >0044,>4850,>6050,>4844    ;
+PLIC76  DATA >6060,>6060,>6060,>81FF    ;
+PLIC77  DATA >3911,>0129,>3939,>39FF    ;
+PLIC78  DATA >3919,>0921,>3139,>39FF    ;
+PLIC79  DATA >0139,>3939,>3939,>01FF    ;
+PLIC80  DATA >0139,>3901,>C0C0,>C0FF    ;
+PLIC81  DATA >3939,>396C,>3838,>38FF    ;
+PLIC82  DATA >0139,>3903,>3939,>39FF    ;
+PLIC83  DATA >0139,>C001,>0639,>01FF    ;
+PLIC84  DATA >0138,>3838,>3838,>38FF    ;
+PLIC85  DATA >3939,>3939,>3939,>01FF    ;
+
+* output string (inset by 4):
+LICTXT TEXT '    NOT@LICENSED@OR@ENDORSED    '
+	   TEXT '    BQ@SEGA@ENTERPRISES@LTDH    '
+
+* registers for bitmap (and 5B00 is the address of the sprite table)
+* background is black. The REG9938 cover the 9938's extra 8 registers
+* and should make the code compatible.
+* PDT - >0000
+* SIT - >1800
+* SDT - >1800
+* CT  - >2000
+* SAL - >1B00
+REG9938 DATA >8808,>8900,>8A00,>8B00,>8C00,>8D00,>8E00,>8F00
+BMREGS DATA >81A2,>8002,>8206,>83ff,>8403,>8536,>8603,>8701,>5B00,>0000
+
 *****************
 **	
 * VDP access
@@ -776,19 +808,6 @@ MENUKY
 	jne delay
 	b *r11
 
-***
-
-* registers for bitmap (and 5B00 is the address of the sprite table)
-* background is black. The REG9938 cover the 9938's extra 8 registers
-* and should make the code compatible.
-* PDT - >0000
-* SIT - >1800
-* SDT - >1800
-* CT  - >2000
-* SAL - >1B00
-REG9938 DATA >8808,>8900,>8A00,>8B00,>8C00,>8D00,>8E00,>8F00
-BMREGS DATA >81A2,>8002,>8206,>83ff,>8403,>8536,>8603,>8701,>5B00,>0000
-
 ***	
 START
 	LWPI >8300
@@ -807,18 +826,13 @@ START
 	LI R2,768
 	BL @VMBS
 
-* first and last table, just need to initialize the space character to be black (color table only)
+* first just need to initialize the space character to be black (color table only)
 	li r0,>2000
 	li r1,>1100
 	li r2,8
 	bl @vmbs
 
-	li r0,>3000
-	li r1,>1100
-	li r2,8
-	bl @vmbs
-
-* Now load the SEGA character and color data into the middle table
+* Now load the SEGA character and color data into the middle table (includes a space)
 	li r0,>800
 	li r1,PAT0
 	li r2,223*8
@@ -827,6 +841,23 @@ START
 	li r0,>2800
 	li r1,COL0
 	li r2,223*8
+	bl @vmbw
+
+* into the bottom table, we zero out the 'space' again but add some characters for
+* the unlicense warning
+	li r0,>3000
+	li r1,>1100
+	li r2,8
+	bl @vmbs
+	
+	li r0,>1000+(64*8)
+	li r1,PLIC64
+	li r2,22*8
+	bl @vmbw
+	
+	li r0,>3000+(64*8)
+	li r1,CLIC64
+	li r2,22*8
 	bl @vmbw
 	
 * now we can turn the screen on
@@ -843,19 +874,7 @@ START
 	li r3,>194A
 	
 	mov r3,r0
-	li r1,md0+(4*32)
-	li r2,12
-	bl @vmbw
-	
-	li r4,4
-	bl @delay
-	
-	mov r3,r0
 	li r1,md0+(3*32)
-	li r2,12
-	bl @vmbw
-	ai r0,32
-	li r1,md0+(4*32)
 	li r2,12
 	bl @vmbw
 	
@@ -870,8 +889,20 @@ START
 	li r1,md0+(3*32)
 	li r2,12
 	bl @vmbw
+	
+	li r4,4
+	bl @delay
+	
+	mov r3,r0
+	li r1,md0+(1*32)
+	li r2,12
+	bl @vmbw
 	ai r0,32
-	li r1,md0+(4*32)
+	li r1,md0+(2*32)
+	li r2,12
+	bl @vmbw
+	ai r0,32
+	li r1,md0+(3*32)
 	li r2,12
 	bl @vmbw
 	
@@ -881,7 +912,7 @@ START
 * now we're going to display the full frame 5 times with different
 * animation frames, ending on the first one
 	li r8,6
-	li r7,md0
+	li r7,md0-32
 
 animlp
 	mov r3,r0
@@ -905,25 +936,34 @@ animlp
 	li r2,12
 	bl @vmbw
 	
+* display our disclaimer, both as a delay and as a to-be-nice
+	li r0,>1800+(22*32)
+	li r1,LICTXT
+	li r2,64
+	bl @vmbw
+	
 	li r4,5
 	bl @delay
 	
 	dec r8
 	jeq anim3
+	
 	ci r8,2
 	jne anim1
-	li r7,md0+12	* final new frame, does not affect flags
+	li r7,md0+12-32		* final new frame, does not affect flags
 anim1
+
 	ci r8,1
 	jne anim2
-	li r7,md0		* back to first frame
+	li r7,md0-32	* back to first frame
 anim2
-	jgt animlp
+
+	jmp animlp
 anim3
 
 * the copy is pretty darn fast for 24k, so to make the logo last a little
-* longer, we'll just pause for half a second or so
-	li r4,45
+* longer, we'll just pause for a second or so
+	li r4,90
 	bl @delay
 	
 * now, we need to copy the EA5 executable into 32k RAM and jump to it
