@@ -49,6 +49,8 @@ maptitlethird1 equ >6032
 maptitlethird2 equ >6034
 maptitlethird3 equ >6036
 
+** WARNING: Do not use R8 and R9 - they containthe VDP write addresses
+
 	AORG >A000
 	DEF START
 	
@@ -66,6 +68,7 @@ maptitlethird3 equ >6036
 
 BIT01  DATA >0001
 QUITK  DATA >1100				* CRU value for QUIT
+CHK32  DATA >FFE0				* inverse of >1f for clip checks
 SCRNBUF	BSS 11*32
 
 **
@@ -73,9 +76,9 @@ SCRNBUF	BSS 11*32
 VSBR	
 	SWPB R0
 VSBRRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
+	MOVB R0,*R9			* set address
 	MOVB @>8800,R1		* read byte
 	B *R11
 
@@ -85,9 +88,9 @@ VSBRRAW
 VMBR
 	SWPB R0
 VMBRRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
+	MOVB R0,*R9			* set address
 	COC @BIT01,R2		* check if odd
 	JNE VMBRLP			* jump if not
 	MOVB @>8800,*R1+	* read one byte
@@ -108,10 +111,10 @@ VSBW
 	ORI R0,>4000		* mask in write bit
 	SWPB R0
 VSBWRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* write address
-	MOVB R1,@>8C00		* write data
+	MOVB R0,*R9			* write address
+	MOVB R1,*R8			* write data
 	B *R11
 
 **
@@ -121,12 +124,12 @@ V2BW
 	ORI R0,>4000
 	SWPB R0
 V2BWRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
-	MOVB R1,@>8C00		* write data 1
+	MOVB R0,*R9		* set address
+	MOVB R1,*R8		* write data 1
 	SWPB R1
-	MOVB R1,@>8C00		* write data 2
+	MOVB R1,*R8		* write data 2
 	B *R11
 
 **
@@ -134,9 +137,9 @@ V2BWRAW
 V2BR
 	SWPB R0
 V2BRRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
+	MOVB R0,*R9			* set address
 	MOV R0,R0			* delay
 	MOVB @>8800,R1		* read first byte
 	SWPB R1
@@ -147,25 +150,28 @@ V2BRRAW
 **
 * VMBW - Write R2 bytes from CPU R1 to VDP R0
 * Destroys R0,R1,R2
-VMBW
+* Copied to scratchpad - DO NOT MAKE LARGER
+VMBW EQU >8340
+VMBWSC
 	ORI R0,>4000
 	SWPB R0
 VMBWRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
+	MOVB R0,*R9			* set address
 	COC @BIT01,R2		* Check for odd length
 	JNE VMBWLP			* jump to x2 loop if not odd
-	MOVB *R1+,@>8C00	* copy one byte
+	MOVB *R1+,*R8		* copy one byte
 	DEC R2				* count down
 	JEQ VMBWEX			* jump to exit if done
 VMBWLP
-	MOVB *R1+,@>8C00	* write one byte
-	MOVB *R1+,@>8C00	* write two bytes
+	MOVB *R1+,*R8		* write one byte
+	MOVB *R1+,*R8		* write two bytes
 	DECT R2				* count down
 	JNE VMBWLP			* loop till finished
 VMBWEX
 	B *R11
+vmbwend
 	
 **
 * VMBS - Set R2 bytes from R1 MSB to VDP R0
@@ -174,17 +180,17 @@ VMBS
 	ORI R0,>4000
 	SWPB R0
 VMBSRAW
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* set address
+	MOVB R0,*R9			* set address
 	COC @BIT01,R2		* Check for odd length
 	JNE VMBSLP			* jump to x2 loop if not odd
-	MOVB R1,@>8C00		* copy once
+	MOVB R1,*R8			* copy once
 	DEC R2				* count down
 	JEQ VMBSEX			* jump to exit if done
 VMBSLP
-	MOVB R1,@>8C00		* write byte
-	MOVB R1,@>8C00		* write second byte
+	MOVB R1,*R8			* write byte
+	MOVB R1,*R8			* write second byte
 	DECT R2				* count down
 	JNE VMBSLP			* loop till finished
 VMBSEX
@@ -194,9 +200,9 @@ VMBSEX
 * VDPWA - Write address or register
 VDPWA
 	SWPB R0
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02		* write address
+	MOVB R0,*R9		* write address
 	B *R11  
 	
 **
@@ -208,13 +214,13 @@ LOADLP
 	MOV *R1+,R0
 	JEQ LDRDN
 	SWPB R0
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	SWPB R0
-	MOVB R0,@>8C02
+	MOVB R0,*R9
 	JMP LOADLP
 LDRDN
 	LI R1,>D000
-	MOVB R1,@>8C00
+	MOVB R1,*R8
 	B *R11
 
 ***
@@ -273,7 +279,9 @@ loadpagevdp
 * R3 - X offset of the ship (assumed to start at >7005 and be 22 chars wide)
 * uses R4,R5,R6
 * All kinds of assumptions about the data layout made here
-shipdraw
+* This is now copied to scratchpad and used at >8362
+shipdraw equ >8362
+shipdrawsc
 * first, fast copy of background data, so we can get away with fewer compares
 	mov r0,r4
 	mov r1,r5
@@ -294,38 +302,52 @@ sdl1
 	ai r1,(32*8)+5	* we should start exactly one section down, plus 5 for the start of ship data
 	
 sdl2
-	li r3,22		* we can reuse r3 now
+	li r5,22		* bytes across
 sdl4
 	movb *r1+,r4	* what is the byte?
 	jeq sdl3		* skip ahead if nul
+	czc @chk32,r3
+	jne sdl3		* check for column clip
 	movb r4,*r0		* else copy it
 sdl3
 	inc r0			* update target either way
-	dec r3
+	inc r3			* and column for clip checks
+	dec r5
 	jne sdl4		* finish the row
 	
 	ai r0,10
 	ai r1,10		* wrap around to start of next row
+	ai r3,-22		* fix r3
 	dec r2			* count down rows
 	jne sdl2
 	
 	b *r11			* all done
+shipend
 
 ********************* MAIN CODE HERE **********************
 
 START
+* load workspace, R8 and R9, then we can start
+	lwpi >8320
+	li r8,>8c00
+	li r9,>8c02
 
 * turn VDP back off again (assumes that loader already set up bitmap)
 * turn on with >81E2
 	li r0,>81A2
 	bl @VDPWA
-	
-* now switch to our alternate workspace
-	lwpi >8320
-	
+
 * init the music player by calling StopSong
 	clr r15					* r15 will hold the song bank
 	bl @StopSong
+
+* now copy vmbw into scratchpad ram for better blit speed
+	li r0,vmbw
+	li r1,vmbwsc
+vcplp
+	mov *r1+,*r0+
+	ci r1,vmbwend
+	jne vcplp
 	
 * clear the screen again
 	li r0,>1800
@@ -358,6 +380,14 @@ START
 	li r2,256				* 1/3rd of background screen
 	bl @vmbw
 	
+* finally, copy shipdraw to scratchpad to squeeze a little more speed out of it (helps)
+	li r0,shipdrawsc
+	li r1,shipdraw
+sclp
+	mov *r0+,*r1+
+	ci r0,shipend
+	jne sclp
+	
 * initialize the title music
 	li r15,tf3ti00
 	mov r15,*r15
@@ -373,7 +403,6 @@ START
 	li r4,120
 	bl @delay
 	
-
 * now we are going to flicker the ship in from left to right until it is centered
 * the ship starts at row 12 and is 11 rows high
 * rows 12-15 are in group 2, and 16-22 are in group 3 (different banks)
@@ -385,8 +414,10 @@ START
 * We'll double buffer it to reduce the odds of unintended flicker, hopefully the
 * work and blit will be quick enough - SCRNBUFis 22*32 bytes
 *
-	clr r13						* x coordinate (for left side)
-	li r14,12					* frames to count
+shspeed equ 2
+
+	li r13,-21					* x coordinate (for left side)
+	li r14,shspeed				* frames to count
 	
 * draw the ship flickering at x=r13, then x=10-r13
 shiplp
@@ -397,7 +428,7 @@ shiplp
 	ai r1,32*4					* skip to row 4 (which is really row 12, cause group 2)
 	li r2,4						* copy 4 rows
 	mov r13,r3					* ship offset
-	bl @shipdraw				* fill the buffer with background
+	bl @shipdraw				* call shipdraw
 	li r0,>1900+(4*32)			* second third VDP
 	li r1,SCRNBUF				* buffer we just made
 	li r2,32*4					* 4 rows
@@ -409,7 +440,7 @@ shiplp
 	mov @>6008,r1				* map data for group 2 (first group is bg, last group is ship)
 	li r2,7						* copy 7 rows
 	mov r13,r3					* ship offset
-	bl @shipdraw				* fill the buffer with background
+	bl @shipdraw				* call shipdraw
 	li r0,>1A00					* third third VDP
 	li r1,SCRNBUF				* buffer we just made
 	li r2,32*7					* 7 rows
@@ -429,7 +460,7 @@ shiplp
 	li r2,4						* copy 4 rows
 	li r3,10					* ship far right
 	s r13,r3					* ship offset
-	bl @shipdraw				* fill the buffer with background
+	bl @shipdraw				* call shipdraw
 	li r0,>1900+(4*32)			* second third VDP
 	li r1,SCRNBUF				* buffer we just made
 	li r2,32*4					* 4 rows
@@ -442,7 +473,7 @@ shiplp
 	li r2,7						* copy 7 rows
 	li r3,10					* ship far right
 	s r13,r3					* ship offset
-	bl @shipdraw				* fill the buffer with background
+	bl @shipdraw				* call shipdraw
 	li r0,>1A00					* third third VDP
 	li r1,SCRNBUF				* buffer we just made
 	li r2,32*7					* 7 rows
@@ -455,7 +486,7 @@ shiplp
 	dec r14						* count down here
 	jne shiplp
 	
-	li r14,10					* reload it
+	li r14,shspeed				* reload it
 	inc r13						* next step
 	jmp shiplp					* and draw it either way (escape is right after the first delay)
 
