@@ -36,6 +36,9 @@ tf3ti08 equ >6018
 tf3ti09 equ >601a
 tf3ti10 equ >601c
 tf3ti11 equ >601e
+tf3ti12 equ >6038
+tf3ti13 equ >603a
+tf3ti14 equ >603c
 mapbossunknown equ >6020
 mapbosscerberus equ >6022
 mapbossfish equ >6024
@@ -49,8 +52,29 @@ maptitlethird1 equ >6032
 maptitlethird2 equ >6034
 maptitlethird3 equ >6036
 
-** WARNING: Do not use R8 and R9 - they containthe VDP write addresses
+** WARNING: Do not use R8 and R9 - they containthe VDP write addresses, and R15 has the song bank
 
+* memory allocation only, don't put initialized data here! It won't get loaded anyway!
+* low ram for data buffers
+	AORG >2000
+	
+* Music player	
+strDat
+	bss 72
+songVol
+	bss 4
+songNote
+	bss 8
+workBuf
+	bss 2
+retSave
+    bss 2
+    
+* tf3 stuff
+SCRNBUF	BSS 11*32
+
+
+* high RAM for program
 	AORG >A000
 	DEF START
 	
@@ -69,7 +93,6 @@ maptitlethird3 equ >6036
 BIT01  DATA >0001
 QUITK  DATA >1100				* CRU value for QUIT
 CHK32  DATA >FFE0				* inverse of >1f for clip checks
-SCRNBUF	BSS 11*32
 
 **
 * VSBR - Read single byte at R0 into MSB R1
@@ -227,6 +250,7 @@ LDRDN
 
 * wait r4 jiffies - this one ALSO calls the sound player
 * this one, you can safely set r4 to 0
+* uses r5,r12
 * ** BIG WARNING ** - this changes ROM bank to R15 for the music!
 delay
 * This quit test copied from the console ROM
@@ -293,7 +317,7 @@ sdl1
 	mov *r5+,*r4+
 	mov *r5+,*r4+
 	dec r6
-	jne sdl1
+	jne sdl1			* warning - this is patched in scratchpad, don't change offset!
 	
 * now, we have to do a byte by byte copy of the ship, checking for zero
 * the ship data IS 32 bytes wide, but we only need to check 22, so we'll fake the
@@ -323,6 +347,431 @@ sdl3
 	
 	b *r11			* all done
 shipend
+
+
+* draw the title characters on the screen with row index r5
+* r5 - row from 0-9
+* Since we never need to REDRAW anything, we can just draw the one row
+* TODO: if we need to reclaim space, we could use a loop with a table...
+drawtit
+	data drawtit0,drawtit1,drawtit2,drawtit3,drawtit4
+	data drawtit5,drawtit6,drawtit7,drawtit8,drawtit9
+	
+drawtit0
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+32+4
+	mov @>6008,r1
+	ai r1,(32*16)+32+4
+	li r2,4
+	bl @vmbw
+	
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*10)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(2*32)+8
+	li r2,1
+	bl @vmbw
+	
+	li r0,>1800+(32*10)+11
+	mov @>6008,r1
+	ai r1,(32*16)+(2*32)+11
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*10)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(2*32)+16
+	li r2,4
+	bl @vmbw
+
+	b *r10
+	
+drawtit1
+	mov r11,r10
+
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*2)+6
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+6
+	li r2,2
+	bl @vmbw
+	
+	li r0,>1800+(32*2)+13
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+13
+	li r2,3
+	bl @vmbw
+	
+	li r0,>1800+(32*2)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+20
+	li r2,4
+	bl @vmbw
+
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*9)+8
+	mov @>6008,r1
+	ai r1,(32*16)+32+8
+	li r2,1
+	bl @vmbw
+	
+	li r0,>1800+(32*9)+11
+	mov @>6008,r1
+	ai r1,(32*16)+32+11
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*9)+16
+	mov @>6008,r1
+	ai r1,(32*16)+32+16
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*9)+24
+	mov @>6008,r1
+	ai r1,(32*16)+32+24
+	li r2,1
+	bl @vmbw
+
+	b *r10
+	
+drawtit2
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*3)+6
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+6
+	li r2,2
+	bl @vmbw
+
+	li r0,>1800+(32*3)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+12
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*3)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+20
+	li r2,4
+	bl @vmbw
+
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*8)+8
+	mov @>6008,r1
+	ai r1,(32*16)+8
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*8)+16
+	mov @>6008,r1
+	ai r1,(32*16)+16
+	li r2,3
+	bl @vmbw
+
+	li r0,>1800+(32*8)+24
+	mov @>6008,r1
+	ai r1,(32*16)+24
+	li r2,1
+	bl @vmbw
+	
+	b *r10
+
+drawtit3
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*4)+6
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+6
+	li r2,2
+	bl @vmbw
+
+	li r0,>1800+(32*4)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+12
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*4)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+20
+	li r2,4
+	bl @vmbw
+	
+		
+	li r0,>1800+(32*7)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+8
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*7)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+16
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*7)+24
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+24
+	li r2,1
+	bl @vmbw
+	
+	b *r10
+	
+drawtit4
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*5)+6
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+6
+	li r2,2
+	bl @vmbw
+
+	li r0,>1800+(32*5)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+12
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*5)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+20
+	li r2,4
+	bl @vmbw
+	
+	
+	li r0,>1800+(32*6)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*6)+8
+	li r2,4
+	bl @vmbw
+
+	b *r10
+	
+drawtit5
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*6)+6
+	mov @>6008,r1
+	ai r1,(32*16)+(32*6)+6
+	li r2,2
+	bl @vmbw
+
+	li r0,>1800+(32*6)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*6)+12
+	li r2,1
+	bl @vmbw
+	
+	
+	li r0,>1800+(32*5)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+8
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*5)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+16
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*5)+25
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+25
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*5)+27
+	mov @>6008,r1
+	ai r1,(32*16)+(32*5)+27
+	li r2,1
+	bl @vmbw
+
+	b *r10
+	
+drawtit6
+	mov r11,r10
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*7)+7
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+7
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*7)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+12
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*7)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*7)+20
+	li r2,4
+	bl @vmbw
+	
+	
+	li r0,>1800+(32*4)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+8
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*4)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+16
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*4)+24
+	mov @>6008,r1
+	ai r1,(32*16)+(32*4)+24
+	li r2,4
+	bl @vmbw
+	
+	b *r10
+
+drawtit7
+	mov r11,r10
+	
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*8)+7
+	mov @>6008,r1
+	ai r1,(32*16)+(32*0)+7
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*8)+13
+	mov @>6008,r1
+	ai r1,(32*16)+(32*0)+13
+	li r2,3
+	bl @vmbw
+
+	li r0,>1800+(32*8)+21
+	mov @>6008,r1
+	ai r1,(32*16)+(32*0)+21
+	li r2,3
+	bl @vmbw
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*3)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+8
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*3)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+16
+	li r2,3
+	bl @vmbw
+
+	li r0,>1800+(32*3)+24
+	mov @>6008,r1
+	ai r1,(32*16)+(32*3)+24
+	li r2,4
+	bl @vmbw
+
+	b *r10
+	
+drawtit8
+	mov r11,r10
+	
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*9)+7
+	mov @>6008,r1
+	ai r1,(32*16)+(32*1)+7
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*9)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*1)+12
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*9)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*1)+20
+	li r2,4
+	bl @vmbw
+	
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*2)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+8
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*2)+16
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+16
+	li r2,4
+	bl @vmbw
+	
+	li r0,>1800+(32*2)+24
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+24
+	li r2,4
+	bl @vmbw
+	
+	b *r10
+	
+drawtit9
+	mov r11,r10
+	
+	mov r0,@maptitlethird2
+	
+	li r0,>1800+(32*10)+7
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+7
+	li r2,1
+	bl @vmbw
+
+	li r0,>1800+(32*10)+12
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+12
+	li r2,4
+	bl @vmbw
+
+	li r0,>1800+(32*10)+20
+	mov @>6008,r1
+	ai r1,(32*16)+(32*2)+20
+	li r2,4
+	bl @vmbw
+
+	mov r0,@maptitlethird1
+	
+	li r0,>1800+(32*1)+8
+	mov @>6008,r1
+	ai r1,(32*16)+(32*1)+8
+	li r2,2
+	bl @vmbw
+	
+	b *r10
 
 ********************* MAIN CODE HERE **********************
 
@@ -400,19 +849,17 @@ sclp
 	bl @VDPWA
 	
 * first, a brief pause before the ship appears
-	li r4,120
+	li r4,90
 	bl @delay
 	
 * now we are going to flicker the ship in from left to right until it is centered
 * the ship starts at row 12 and is 11 rows high
 * rows 12-15 are in group 2, and 16-22 are in group 3 (different banks)
 * it is 22 characters wide with 5 cells of gap on each side
-* we also have to not draw 0-filled cells
-* so this is only 10 frames, meaning we'll have to flicker a bit in place
-* draw at 0,10, 1,9, 2,8, 3,7, 4,6, and finally 5
+* we also have to not draw 0-filled cells and clip at the edges
 *
 * We'll double buffer it to reduce the odds of unintended flicker, hopefully the
-* work and blit will be quick enough - SCRNBUFis 22*32 bytes
+* work and blit will be quick enough - SCRNBUF is 11*32 bytes
 *
 shspeed equ 2
 
@@ -489,11 +936,22 @@ shiplp
 	li r14,shspeed				* reload it
 	inc r13						* next step
 	jmp shiplp					* and draw it either way (escape is right after the first delay)
-
 shipdn
+
+* now it's time for the title text. I'm thinking too hard about how to do it "right"
+* so I'm going to do it completely manually ;) Takes more code, but we should have room to spare.
+
+	clr r13						* frame counter
+titlp
+	mov @drawtit(r13),r1
+	bl *r1						* draw the relevant bits
 	
-
-
+	li r4,5
+	bl @delay
+	
+	inct r13
+	ci r13,20
+	jne titlp
 	
 lp
 	clr r4

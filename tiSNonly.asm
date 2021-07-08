@@ -11,16 +11,7 @@
 *    def retSave
 
     even
-strDat
-	bss 72
-songVol
-	bss 4
-songNote
-	bss 8
-workBuf
-	bss 2
-retSave
-    bss 2
+* Note: memory buffers moved out into tf3.a99    
 
 R3LSB EQU >8307
 R2LSB EQU >8305
