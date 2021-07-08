@@ -870,7 +870,7 @@ sclp
 * We'll double buffer it to reduce the odds of unintended flicker, hopefully the
 * work and blit will be quick enough - SCRNBUF is 11*32 bytes
 *
-shspeed equ 2
+shspeed equ 3
 
 	li r13,-21					* x coordinate (for left side)
 	li r14,shspeed				* frames to count
@@ -947,6 +947,10 @@ shiplp
 	jmp shiplp					* and draw it either way (escape is right after the first delay)
 shipdn
 
+* there's about a half second delay here...
+	li r4,40
+	bl @delay
+
 * now it's time for the title text. I'm thinking too hard about how to do it "right"
 * so I'm going to do it completely manually ;) Takes more code, but we should have room to spare.
 
@@ -982,9 +986,19 @@ tit3lp
 	jmp tit3lp
 tit3end
 
+* now, we just wait for the music to end!
+waitlp
+	clr r4
+	bl @delay
+	
+	movb @songNote+7,r0
+	andi r0,>0100
+	jne waitlp
 	
 
-	
+* temp code - change screen	color so I know it's done
+	li r0,>8733
+	bl @vdpwa
 lp
 	clr r4
 	bl @delay
