@@ -253,6 +253,9 @@ LDRDN
 * uses r5,r12
 * ** BIG WARNING ** - this changes ROM bank to R15 for the music!
 delay
+* reset the bank in case of QUIT
+	mov r0,@>6000
+	
 * This quit test copied from the console ROM
 	LI R12,>0024 		* Load CRU
 	LDCR @>0012,3
@@ -773,6 +776,12 @@ drawtit9
 	
 	b *r10
 
+* random data for displaying III
+* generated in BLASSIC, 26 entries of y*32+x+1
+TITIII
+	DATA 70,66,99,101,2,34,98,5,102,3,37,35,65,97,36,69,38,68,4,1,100,6,33,67
+	DATA 0
+	
 ********************* MAIN CODE HERE **********************
 
 START
@@ -849,7 +858,7 @@ sclp
 	bl @VDPWA
 	
 * first, a brief pause before the ship appears
-	li r4,90
+	li r4,60
 	bl @delay
 	
 * now we are going to flicker the ship in from left to right until it is centered
@@ -943,7 +952,7 @@ shipdn
 
 	clr r13						* frame counter
 titlp
-	mov @drawtit(r13),r1
+	mov @drawtit(r13),r1		* fetch function address
 	bl *r1						* draw the relevant bits
 	
 	li r4,5
@@ -952,6 +961,29 @@ titlp
 	inct r13
 	ci r13,20
 	jne titlp
+
+* all that's left now is the III blocking in. This lives from rows 11-14, columns 13-18
+	li r13,TITIII				* random number table
+	
+tit3lp
+	mov r0,@maptitlethird2		* bank in the second third
+
+	mov *r13+,r1				* get random offset (+1)
+	jeq tit3end					* if we're done, exit
+	mov r1,r0					* save for VDP offset
+	a @>6008,r1					* add md0 for ROM offset
+	ai r1,(32*16)+(3*32)+12		* and get down to the title block, plus offset
+	ai r0,>5800+(11*32)+12		* VDP write address
+	bl @vdpwa					* set VDP address
+	movb *r1,*r8				* write byte to VDP
+	
+	li r4,2
+	bl @delay
+	jmp tit3lp
+tit3end
+
+	
+
 	
 lp
 	clr r4
