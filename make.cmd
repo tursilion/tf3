@@ -23,6 +23,12 @@ copy /y sounds\TF3TI10.sbf .
 d:\work\setbinsize\release\setbinsize TF3TI10.sbf 8192
 copy /y sounds\TF3TI11.sbf .
 d:\work\setbinsize\release\setbinsize TF3TI11.sbf 8192
+copy /y sounds\TF3TI12.sbf .
+d:\work\setbinsize\release\setbinsize TF3TI12.sbf 8192
+copy /y sounds\TF3TI13.sbf .
+d:\work\setbinsize\release\setbinsize TF3TI13.sbf 8192
+copy /y sounds\TF3TI14.sbf .
+d:\work\setbinsize\release\setbinsize TF3TI14.sbf 8192
 
 @rem graphics
 python D:\tools\xdt99\xas99.py -R magellan\map_boss_unknown.a99 -o map_boss_unknown.obj
@@ -123,9 +129,9 @@ copy /b loaderC.bin ^
 + /b map_titleThird1.bin ^
 + /b map_titleThird2.bin ^
 + /b map_titleThird3.bin ^
-+ /b loaderC.bin ^
-+ /b loaderC.bin ^
-+ /b loaderC.bin ^
++ /b TF3TI12.sbf ^
++ /b TF3TI13.sbf ^
++ /b TF3TI14.sbf ^
 + /b loaderC.bin ^
 /b TF3_8.bin
 

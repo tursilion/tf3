@@ -179,4 +179,16 @@ Display "Duration" instead of "Weak point"
 		- Stage: NO MORE
 		- Target: NONE
 		- Duration: 0M04
+		
+	Metal Squad (had pt1 and pt2!)
+		- Metal Squad
+		- STAGE: TFIV WALL
+		- Target: EVIL CORE
+		- Duration: 4M40
+		
+	TF4 Staff
+		- STAND UP AGAINST MYSELF
+		- Stage: TFIV STAFF
+		- Target: MORE AWESOME STAFF
+		- Duration: 1M49
 

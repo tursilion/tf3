@@ -26,9 +26,9 @@
 6032	map_titleThird1
 6034	map_titleThird2
 6036	map_titleThird3
-6038	
-603A
-603C
+6038	TF3TI12
+603A	TF3TI13
+603C	TF3TI14
 603E	LOADER
 
 Most banks, except the EA#5 ones, have lots of space free, but we did need more than 128k and 256k was the next legal size. But we'd probably want to pack better if we ever wanted to add scrolling level data (or double again to 512k).
