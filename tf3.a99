@@ -82,6 +82,40 @@ SCRNBUF	BSS 11*32
 
 	COPY "tiSNonly.asm"
 
+* data
+BIT01  DATA >0001
+QUITK  DATA >1100				* CRU value for QUIT
+CHK32  DATA >FFE0				* inverse of >1f for clip checks
+
+* random data for displaying III
+* generated in BLASSIC, 26 entries of y*32+x+1
+TITIII
+	DATA 70,66,99,101,2,34,98,5,102,3,37,35,65,97,36,69,38,68,4,1,100,6,33,67
+	DATA 0
+
+* stage names are preceded by sprite coordinates (row,col) assuming main briefing screen
+* then always 6 characters of text
+STAGESEL
+	TEXT 'STAGE SELECT'
+STAGETXT
+	data txthydra,txtgorgon,txtseiren,txthaides,txtellis
+txthydra
+	data 6*8,4*8
+	text 'HYDRA '
+txtgorgon
+	data 12*8,13*8
+	text 'GORGON'
+txtseiren
+	data 18*8,13*8
+	text 'SEIREN'
+txthaides
+	data 18*8,5*8
+	text 'HAIDES'
+txtellis
+	data 13*8+4,2*8+4
+	text 'ELLIS '
+	even
+
 *****************
 **	
 * VDP access
@@ -89,10 +123,6 @@ SCRNBUF	BSS 11*32
 * Raw versions assume address is preswapped and pre-masked,
 * and do not attempt to preserve the value in R0
 *
-
-BIT01  DATA >0001
-QUITK  DATA >1100				* CRU value for QUIT
-CHK32  DATA >FFE0				* inverse of >1f for clip checks
 
 **
 * VSBR - Read single byte at R0 into MSB R1
@@ -355,7 +385,6 @@ shipend
 * draw the title characters on the screen with row index r5
 * r5 - row from 0-9
 * Since we never need to REDRAW anything, we can just draw the one row
-* TODO: if we need to reclaim space, we could use a loop with a table...
 drawtit
 	data drawtit0,drawtit1,drawtit2,drawtit3,drawtit4
 	data drawtit5,drawtit6,drawtit7,drawtit8,drawtit9
@@ -775,13 +804,101 @@ drawtit9
 	bl @vmbw
 	
 	b *r10
-
-* random data for displaying III
-* generated in BLASSIC, 26 entries of y*32+x+1
-TITIII
-	DATA 70,66,99,101,2,34,98,5,102,3,37,35,65,97,36,69,38,68,4,1,100,6,33,67
-	DATA 0
 	
+* translation to convert ascii to the silly places I put text...
+* 0 is at 26, A (blue) is at 43, a (yellow) is at 77
+* delta is -22 for numbers and uppercase, -20 for lowercase
+* we take no responsibility for non-alphanumerics.
+* R0 - VDP address
+* R1 - CPU address
+* R2 - bytes to copy
+showtext
+	ori r0,>4000		* set address for write
+	swpb r0
+	movb r0,*r9
+	swpb r0
+	movb r0,*r9
+	
+	clr r0
+stlp
+	movb *r1+,r0
+	ci r0,>2000			* space
+	jne stlp3
+	clr r0
+	jmp stlp2
+stlp3
+	ai r0,>EA00			* -22
+	ci r0,>4b00			* lowercase A after subtraction
+	jlt stlp2
+	ai r0,>0200			* give the 2 back
+stlp2
+	movb r0,*r8
+	dec r2
+	jne stlp
+	
+	b *r11
+	
+* place crosshair sprites
+* R6 - row (including offset)
+* r7 - column (including offset)
+* r13 - row offset
+* r14 - column offset
+drawcrosshairs
+	li r0,>5b00
+	SWPB R0
+	MOVB R0,*R9
+	SWPB R0
+	MOVB R0,*R9		* write address
+	
+	li r1,>7400		* vertical beam (4 of these)
+	li r2,>0800		* dark red
+
+	mov r13,r0		* first row
+	swpb r0
+	swpb r7
+	movb r0,*r8		* row
+	movb r7,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	ai r0,>2000
+	movb r0,*r8		* row
+	movb r7,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	ai r0,>2000
+	movb r0,*r8		* row
+	movb r7,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	ai r0,>2000
+	movb r0,*r8		* row
+	movb r7,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	swpb r7
+
+	li r1,>7800		* horizontal beam (3 of these)
+	mov r14,r0		* first column
+	swpb r0
+	swpb r6
+	movb r6,*r8		* row
+	movb r0,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	ai r0,>2000
+	movb r6,*r8		* row
+	movb r0,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	ai r0,>2000
+	movb r6,*r8		* row
+	movb r0,*r8		* col
+	movb r1,*r8		* char
+	movb r2,*r8		* color
+	swpb r6
+	
+	b *r11
+
 ********************* MAIN CODE HERE **********************
 
 START
@@ -791,8 +908,8 @@ START
 	li r9,>8c02
 
 * turn VDP back off again (assumes that loader already set up bitmap)
-* turn on with >81E2
-	li r0,>81A2
+* turn on with >81E3
+	li r0,>81A3
 	bl @VDPWA
 
 * init the music player by calling StopSong
@@ -854,7 +971,7 @@ sclp
 	bl @StartSong
 	
 * that's good, now we can turn on the screen and start the music
-	li r0,>81E2
+	li r0,>81E3
 	bl @VDPWA
 	
 * first, a brief pause before the ship appears
@@ -994,6 +1111,117 @@ waitlp
 	movb @songNote+7,r0
 	andi r0,>0100
 	jne waitlp
+	
+* good, now we pause for a second...
+	li r4,60
+	bl @delay
+	
+* clear the screen, and wait for another half second
+	li r0,>1800
+	clr r1
+	li r2,768
+	bl @vmbs
+	
+	li r4,30
+	bl @delay
+	
+* next screen! Time for the stage select!
+* load the character set (all three pages this one, at least to start)
+	clr r3
+	li r4,mapbriefing
+	bl @loadpagevdp
+	li r3,>800
+	li r4,mapbriefing
+	bl @loadpagevdp
+	li r3,>1000
+	li r4,mapbriefing
+	bl @loadpagevdp
+	
+* and load the sprite graphics - no nicely defined pointer this time
+	li r0,>1b80			* first free pattern
+	mov @>6008,r1		* md0
+	ai r1,-(16*8+10)		* distance back to start of sprite data
+	li r2,16*8
+	bl @vmbw
+	
+* and block out the sprite table
+	li r0,>1b00
+	li r1,>d000
+	li r2,128
+	bl @vmbs
+
+* but, we aren't loading the briefing PAGE, just the world map
+* which means we need to do it manually. The world map is at
+* row 5, column 1, and is 14 cells wide and 17 cells tall
+
+* display STAGE SELECT text in top row 
+* but... nooooo, I couldn't put the alphabet at the ASCII location...
+	li r0,>1800+10
+	li r1,STAGESEL
+	li r2,12
+	bl @showtext
+	
+* no paging issues on this one, just bring it in, one row at a time
+	li r4,>1800+(32*3)+9		* dest adr
+	mov @>6008,r5				* address of MD0 (page still valid from above)
+	ai r5,(5*32)+1				* location in the source map
+	li r6,17					* number of rows
+cpmapl1
+	mov r4,r0
+	mov r5,r1
+	li r2,14
+	bl @vmbw
+	
+	ai r4,32
+	ai r5,32
+	dec r6
+	jne cpmapl1
+	
+* okay, static text is up, initialize our world and the music
+	clr r5						* world (make sure to step by 2!)
+	li r13,(3*8)-1+4			* row offset for sprite
+	li r14,(9*8)+8				* col offset for sprite
+	
+	li r15,tf3ti01
+	mov r0,*r15					* page it in
+	li r1,>6000
+	clr r2						* song 0 is select
+	bl @StartSong
+	
+* now wait for the music to end. as a bonus, the human can select
+* a stage with the arrow keys and space, which will change where we start
+* the briefing screen
+
+selectlp
+* first, draw the crosshairs and world text
+* we don't have to do much, so we can do this every frame
+	mov r5,r4					* make a copy
+	mov @STAGETXT(r4),r4		* get the pointer
+	
+	mov *r4+,r6					* this is the row
+	a r13,r6
+	mov *r4+,r7					* column
+	a r14,r7
+	bl @drawcrosshairs
+	
+	li r0,>1800+(23*32)+13		* for writing the world name
+	mov r4,r1
+	li r2,6
+	bl @showtext
+	
+	
+	
+
+
+
+
+
+	
+	
+	
+	
+	
+
 	
 
 * temp code - change screen	color so I know it's done
