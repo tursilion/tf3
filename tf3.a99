@@ -79,9 +79,12 @@ crosshairrow bss 2		* current row of the crosshair in 8.8 fixed point
 crosshaircol bss 2		* current column of the crosshair in 8.8 fixed point
 crosshairspr bss 2		* row speed of the crosshair in 8.8
 crosshairspc bss 2		* column speed of the crosshair in 8.8
+crosshairtar bss 2		* crosshair target row
+crosshairtac bss 2		* crosshair target column
 weapon bss 2			* current weapon (0 or 1)
 textline bss 2			* current line being printed in display
-textptr bss 2			* pointer to current output char
+textptr bss 2			* pointer to next output char
+textvdp bss 2			* VDP address of next output char
 textcount bss 2			* number of characters left to print
 textdelay bss 2			* delay frames left before next character
 statusline bss 2		* index of status line for AID (0 = song title)
@@ -119,25 +122,65 @@ STAGESEL
 STAGETXT
 	data txthydra,txtgorgon,txtseiren,txthaides,txtellis
 txthydra
-	data (-3)*8+3,2*8-2
+	data 6,94
 	text 'HYDRA '
 txtgorgon
-	data 3*8+6,11*8-2
+	data 57,166
 	text 'GORGON'
 txtseiren
-	data 9*8+7,11*8-2
+	data 106,166
 	text 'SEIREN'
 txthaides
-	data 9*8+7,3*8-1
+	data 106,103
 	text 'HAIDES'
 txtellis
-	data 4*8+10,0*8+3
+	data 69,83
 	text 'ELLIS '
 	even
 
 *****************
+* text lines
+txtstage 
+	data 5
+	TEXT 'STAGE'
+	even
+txttarget 
+	data 6
+	TEXT 'TARGET'
+	even
+txtduration 
+	data 8
+	TEXT 'DURATION'
+	even
+	
+TEXTFCTNS	DATA txtfctn1,txtfctn2,txtfctn3,txtfctn4
+			DATA txtfctn5,txtfctn6,0
+	
+STATUSTEXT	DATA 0,STAT1,STAT2,STAT3,STAT4,STAT5
+STAT1	
+	data 21
+	text 'MUSIC PLAYER BY TURSI'
+	even
+STAT2	
+	data 19
+	TEXT 'TFIII BY TECHNOSOFT'
+	even
+STAT3	
+	data 15
+	TEXT 'N FOR NEXT SONG'
+	even
+STAT4	
+	data 19
+	TEXT 'P FOR PREVIOUS SONG'
+	even
+STAT5	
+	data 12
+	TEXT 'QUIT TO EXIT'
+	even
+
+*****************
 * Song information for the status screen
-* 0 - status line, 1 - stage, 2 - Target, 3 - Duration, 4 - song 1 AND 2, crosshair row, crosshair col
+* 0 - status line, 1 - stage, 2 - Target, 3 - Duration, 4 - song 1 AND 2, crosshair row, crosshair col,portrait
 * Song data is page, then index
 SONGINFO
 	DATA 0,TITLEINFO,SELECTINFO,HYDRAINFO,HBOSSINFO
@@ -148,388 +191,388 @@ SONGINFO
 	DATA STAFFINFO,GAMEOVERINFO,SQUADINFO,TF4STAFFINFO,0
 	
 TITLEINFO	
-	DATA T01,T02,T03,T04,S01,4,8
-T01	DATA 26
+	DATA T01,T02,T03,T04,S01,>2f00,>1800,mapbossunknown
+t01	data 26
 	TEXT 'THE WIND BLEW ALL DAY LONG'
-	EVEN
-T02	DATA 5
-	TEXT 'TITLE'
-	EVEN
-T03	DATA 3
-	TEXT 'TF3'
-	EVEN
-T04	DATA 4
-	TEXT '0M15'
-	EVEN
-S01	DATA TF3TI00,0,0,0
+	even
+t02	data 5
+	text 'title'
+	even
+t03	data 3
+	text 'tf3'
+	even
+t04	data 4
+	text '0m15'
+	even
+s01	data tf3ti00,0,0,0
 	
-SELECTINFO
-	DATA T11,T12,T13,T14,S11,4,8
-T11	DATA 16
+selectinfo
+	data t11,t12,t13,t14,s11,>2f00,>1800,mapbossunknown
+t11	data 16
 	TEXT 'BEYOND THE PEACE'
-	EVEN
-T12	DATA 12
-	TEXT 'STAGE SELECT'
-	EVEN
-T13	DATA 6
-	TEXT 'CHOOSE'
-	EVEN
-T14	DATA 4
-	TEXT '1M01'
-	EVEN
-S11	DATA TF3TI01,0,0,0
+	even
+t12	data 12
+	text 'stage select'
+	even
+t13	data 6
+	text 'choose'
+	even
+t14	data 4
+	text '1m01'
+	even
+s11	data tf3ti01,0,0,0
 
-HYDRAINFO
-	DATA T21,T22,T23,T24,S21,(-3)*8+3,2*8-2
-T21	DATA 16
+hydrainfo
+	data t21,t22,t23,t24,s21,>1600,>1e00,mapbossgargoyle
+t21	data 16
 	TEXT 'BACK TO THE FIRE'
-	EVEN
-T22	DATA 5
-	TEXT 'HYDRA'
-	EVEN
-T23	DATA 8
-	TEXT 'GARGOYLE'
-	EVEN
-T24	DATA 4
-	TEXT '2M15'
-	EVEN
-S21	DATA TF3TI02,0,0,0
+	even
+t22	data 5
+	text 'hydra'
+	even
+t23	data 8
+	text 'gargoyle'
+	even
+t24	data 4
+	text '2m15'
+	even
+s21	data tf3ti02,0,0,0
 
-HBOSSINFO
-	DATA T31,T32,T33,T34,S31,(-3)*8+3,2*8-2
-T31	DATA 8
+hbossinfo
+	data t31,t32,t33,t34,s31,>1600,>1e00,mapbossgargoyle
+t31	data 8
 	TEXT 'GARGOYLE'
-	EVEN
-T32	DATA 5
-	TEXT 'HYDRA'
-	EVEN
-T33	DATA 8
-	TEXT 'GARGOYLE'
-	EVEN
-T34	DATA 4
-	TEXT '1M38'
-	EVEN
-S31	DATA TF3TI03,0,0,0
+	even
+t32	data 5
+	text 'hydra'
+	even
+t33	data 8
+	text 'gargoyle'
+	even
+t34	data 4
+	text '1m38'
+	even
+s31	data tf3ti03,0,0,0
 
-GORGONINFO
-	DATA T41,T42,T43,T44,S41,3*8+6,11*8-2
-T41	DATA 10
+gorgoninfo
+	data t41,t42,t43,t44,s41,>4900,>6600,mapbossvulcan
+t41	data 10
 	TEXT 'VENUS FIRE'
-	EVEN
-T42	DATA 6
-	TEXT 'GORGON'
-	EVEN
-T43	DATA 11
-	TEXT 'TWIN VULCAN'
-	EVEN
-T44	DATA 4
-	TEXT '2M54'
-	EVEN
-S41	DATA TF3TI00,5,0,0
+	even
+t42	data 6
+	text 'gorgon'
+	even
+t43	data 11
+	text 'twin vulcan'
+	even
+t44	data 4
+	text '2m54'
+	even
+s41	data tf3ti00,5,0,0
 
-GBOSSINFO
-	DATA T51,T52,T53,T54,S51,3*8+6,11*8-2
-T51	DATA 11
+gbossinfo
+	data t51,t52,t53,t54,s51,>4900,>6600,mapbossvulcan
+t51	data 11
 	TEXT 'TWIN VULCAN'
-	EVEN
-T52	DATA 6
-	TEXT 'GORGON'
-	EVEN
-T53	DATA 11
-	TEXT 'TWIN VULCAN'
-	EVEN
-T54	DATA 4
-	TEXT '1M11'
-	EVEN
-S51	DATA TF3TI03,1,0,0
+	even
+t52	data 6
+	text 'gorgon'
+	even
+t53	data 11
+	text 'twin vulcan'
+	even
+t54	data 4
+	text '1m11'
+	even
+s51	data tf3ti03,1,0,0
 
-SEIRENINFO
-	DATA T61,T62,T63,T64,S61,9*8+7,11*8-2
-T61	DATA 20
+seireninfo
+	data t61,t62,t63,t64,s61,>7a00,>6600,mapbossfish
+t61	data 20
 	TEXT 'THE GRUBBY DARK BLUE'
-	EVEN
-T62	DATA 6
-	TEXT 'SEIREN'
-	EVEN
-T63	DATA 11
-	TEXT 'KING FISH'
-	EVEN
-T64	DATA 4
-	TEXT '2M32'
-	EVEN
-S61	DATA TF3TI04,0,0,0
+	even
+t62	data 6
+	text 'seiren'
+	even
+t63	data 11
+	text 'king fish'
+	even
+t64	data 4
+	text '2m32'
+	even
+s61	data tf3ti04,0,0,0
 
-SBOSSINFO
-	DATA T71,T72,T73,T74,S71,9*8+7,11*8-2
-T71	DATA 11
+sbossinfo
+	data t71,t72,t73,t74,s71,>7a00,>6600,mapbossfish
+t71	data 11
 	TEXT 'KING FISH'
-	EVEN
-T72	DATA 6
-	TEXT 'SEIREN'
-	EVEN
-T73	DATA 11
-	TEXT 'KING FISH'
-	EVEN
-T74	DATA 4
-	TEXT '1M30'
-	EVEN
-S71	DATA TF3TI05,0,0,0
+	even
+t72	data 6
+	text 'seiren'
+	even
+t73	data 11
+	text 'king fish'
+	even
+t74	data 4
+	text '1m30'
+	even
+s71	data tf3ti05,0,0,0
 
-HAIDESINFO
-	DATA T81,T82,T83,T84,S81,9*8+7,3*8-1
-T81	DATA 5
+haidesinfo
+	data t81,t82,t83,t84,s81,>7a00,>2700,mapbosslobster
+t81	data 5
 	TEXT 'TRUTH'
-	EVEN
-T82	DATA 6
-	TEXT 'HAIDES'
-	EVEN
-T83	DATA 9
-	TEXT 'G LOBSTER'
-	EVEN
-T84	DATA 4
-	TEXT '1M43'
-	EVEN
-S81	DATA TF3TI06,0,0,0
+	even
+t82	data 6
+	text 'haides'
+	even
+t83	data 9
+	text 'g lobster'
+	even
+t84	data 4
+	text '1m43'
+	even
+s81	data tf3ti06,0,0,0
 
-HABOSSINFO
-	DATA T91,T92,T93,T94,S91,9*8+7,3*8-1
-T91	DATA 9
+habossinfo
+	data t91,t92,t93,t94,s91,>7a00,>2700,mapbosslobster
+t91	data 9
 	TEXT 'G LOBSTER'
-	EVEN
-T92	DATA 6
-	TEXT 'HAIDES'
-	EVEN
-T93	DATA 9
-	TEXT 'G LOBSTER'
-	EVEN
-T94	DATA 4
-	TEXT '1M39'
-	EVEN
-S91	DATA TF3TI02,1,0,0
+	even
+t92	data 6
+	text 'haides'
+	even
+t93	data 9
+	text 'g lobster'
+	even
+t94	data 4
+	text '1m39'
+	even
+s91	data tf3ti02,1,0,0
 
-ELLISINFO
-	DATA T101,T102,T103,T104,S101,4*8+10,0*8+3
-T101	DATA 19
+ellisinfo
+	data t101,t102,t103,t104,s101,>5500,>1300,mapbossfort
+t101	data 19
 	TEXT 'FINAL TAKE A CHANCE'
-	EVEN
-T102	DATA 5
-	TEXT 'ELLIS'
-	EVEN
-T103	DATA 11
-	TEXT 'MOBILE FORT'
-	EVEN
-T104	DATA 4
-	TEXT '1M41'
-	EVEN
-S101	DATA TF3TI04,1,0,0
+	even
+t102	data 5
+	text 'ellis'
+	even
+t103	data 11
+	text 'mobile fort'
+	even
+t104	data 4
+	text '1m41'
+	even
+s101	data tf3ti04,1,0,0
 
-EBOSSINFO
-	DATA T111,T112,T113,T114,S111,4*8+10,0*8+3
-T111	DATA 11
+ebossinfo
+	data t111,t112,t113,t114,s111,>5500,>1300,mapbossfort
+t111	data 11
 	TEXT 'MOBILE FORT'
-	EVEN
-T112	DATA 5
-	TEXT 'ELLIS'
-	EVEN
-T113	DATA 11
-	TEXT 'MOBILE FORT'
-	EVEN
-T114	DATA 4
-	TEXT '1M03'
-	EVEN
-S111	DATA TF3TI01,2,0,0
+	even
+t112	data 5
+	text 'ellis'
+	even
+t113	data 11
+	text 'mobile fort'
+	even
+t114	data 4
+	text '1m03'
+	even
+s111	data tf3ti01,2,0,0
 
-CERBERUSINFO
-	DATA T121,T122,T123,T124,S121,1*8+10,5*8+3
-T121	DATA 31
+cerberusinfo
+	data t121,t122,t123,t124,s121,>4500,>4300,mapbosscerberus
+t121	data 31
 	TEXT 'HIS BEHAVIOUR INSPIRED DISTRUST'
-	EVEN
-T122	DATA 8
-	TEXT 'CERBERUS'
-	EVEN
-T123	DATA 8
-	TEXT 'CERBERUS'
-	EVEN
-T124	DATA 4
-	TEXT '5M16'
-	EVEN
-S121	DATA TF3TI05,1,TF3TI07,0
+	even
+t122	data 8
+	text 'cerberus'
+	even
+t123	data 8
+	text 'cerberus'
+	even
+t124	data 4
+	text '5m16'
+	even
+s121	data tf3ti05,1,tf3ti07,0
 
-BASEINFO
-	DATA T131,T132,T133,T134,S131,4*8+10,0*8+3
-T131	DATA 26
+baseinfo
+	data t131,t132,t133,t134,s131,>4d00,>4b00,mapbossunknown
+t131	data 26
 	TEXT 'HUNGER MADE THEM DESPERATE'
-	EVEN
-T132	DATA 8
-	TEXT 'ORN BASE'
-	EVEN
-T133	DATA 7
-	TEXT 'NO DATA'
-	EVEN
-T134	DATA 4
-	TEXT '3M51'
-	EVEN
-S131	DATA TF3TI08,0,0,0
+	even
+t132	data 8
+	text 'orn base'
+	even
+t133	data 7
+	text 'no data'
+	even
+t134	data 4
+	text '3m51'
+	even
+s131	data tf3ti08,0,0,0
 
-BASEBOSSINFO
-	DATA T141,T142,T143,T144,S141,4*8+10,0*8+3
-T141	DATA 8
+basebossinfo
+	data t141,t142,t143,t144,s141,>4d00,>4b00,mapbossunknown
+t141	data 8
 	TEXT 'OFF LUCK'
-	EVEN
-T142	DATA 8
-	TEXT 'ORN BASE'
-	EVEN
-T143	DATA 7
-	TEXT 'NO DATA'
-	EVEN
-T144	DATA 4
-	TEXT '1M38'
-	EVEN
-S141	DATA TF3TI09,0,0,0
+	even
+t142	data 8
+	text 'orn base'
+	even
+t143	data 7
+	text 'no data'
+	even
+t144	data 4
+	text '1m38'
+	even
+s141	data tf3ti09,0,0,0
 
-COREINFO
-	DATA T151,T152,T153,T154,S151,4*8+10,0*8+3
-T151	DATA 12
+coreinfo
+	data t151,t152,t153,t154,s151,>4d00,>4b00,mapbossunknown
+t151	data 12
 	TEXT 'FINAL MOMENT'
-	EVEN
-T152	DATA 8
-	TEXT 'ORN CORE'
-	EVEN
-T153	DATA 6
-	TEXT 'CHA OS'
-	EVEN
-T154	DATA 4
-	TEXT '1M23'
-	EVEN
-S151	DATA TF3TI03,2,0,0
+	even
+t152	data 8
+	text 'orn core'
+	even
+t153	data 6
+	text 'cha os'
+	even
+t154	data 4
+	text '1m23'
+	even
+s151	data tf3ti03,2,0,0
 
-ORNBOSSINFO
-	DATA T161,T162,T163,T164,S161,4*8+10,0*8+3
-T161	DATA 17
+ornbossinfo
+	data t161,t162,t163,t164,s161,>4d00,>4b00,mapbossunknown
+t161	data 17
 	TEXT 'BE MENACED BY ORN'
-	EVEN
-T162	DATA 6
-	TEXT 'CHA OS'
-	EVEN
-T163	DATA 6
-	TEXT 'CHA OS'
-	EVEN
-T164	DATA 4
-	TEXT '1M49'
-	EVEN
-S161	DATA TF3TI00,1,TF3TI10,0
+	even
+t162	data 6
+	text 'cha os'
+	even
+t163	data 6
+	text 'cha os'
+	even
+t164	data 4
+	text '1m49'
+	even
+s161	data tf3ti00,1,tf3ti10,0
 
-STAGECLEARINFO
-	DATA T171,T172,T173,T174,S171,4*8+10,0*8+3
-T171	DATA 11
+stageclearinfo
+	data t171,t172,t173,t174,s171,>4d00,>4b00,mapbossunknown
+t171	data 11
 	TEXT 'STAGE CLEAR'
-	EVEN
-T172	DATA 5
-	TEXT 'CLEAR'
-	EVEN
-T173	DATA 9
-	TEXT 'DESTROYED'
-	EVEN
-T174	DATA 4
-	TEXT '0M02'
-	EVEN
-S171	DATA TF3TI00,2,0,0
+	even
+t172	data 5
+	text 'clear'
+	even
+t173	data 9
+	text 'destroyed'
+	even
+t174	data 4
+	text '0m02'
+	even
+s171	data tf3ti00,2,0,0
 
-CONTINUEINFO
-	DATA T181,T182,T183,T184,S181,4*8+10,0*8+3
-T181	DATA 8
+continueinfo
+	data t181,t182,t183,t184,s181,>4d00,>4b00,mapbossunknown
+t181	data 8
 	TEXT 'CONTINUE'
-	EVEN
-T182	DATA 9
-	TEXT 'ALL CLEAR'
-	EVEN
-T183	DATA 4
-	TEXT 'NONE'
-	EVEN
-T184	DATA 4
-	TEXT '0M21'
-	EVEN
-S181	DATA TF3TI00,4,0,0
+	even
+t182	data 9
+	text 'all clear'
+	even
+t183	data 4
+	text 'none'
+	even
+t184	data 4
+	text '0m21'
+	even
+s181	data tf3ti00,4,0,0
 
-ENDINGINFO
-	DATA T191,T192,T193,T194,S191,4*8+10,0*8+3
-T191	DATA 21
+endinginfo
+	data t191,t192,t193,t194,s191,>4d00,>4b00,mapbossunknown
+t191	data 21
 	TEXT 'A WAR WITHOUT THE END'
-	EVEN
-T192	DATA 9
-	TEXT 'ALL CLEAR'
-	EVEN
-T193	DATA 4
-	TEXT 'NONE'
-	EVEN
-T194	DATA 4
-	TEXT '1M04'
-	EVEN
-S191	DATA TF3TI01,1,0,0
+	even
+t192	data 9
+	text 'all clear'
+	even
+t193	data 4
+	text 'none'
+	even
+t194	data 4
+	text '1m04'
+	even
+s191	data tf3ti01,1,0,0
 
-STAFFINFO
-	DATA T201,T202,T203,T204,S201,4*8+10,0*8+3
-T201	DATA 7
+staffinfo
+	data t201,t202,t203,t204,s201,>4d00,>4b00,mapbossunknown
+t201	data 7
 	TEXT 'PRESENT'
-	EVEN
-T202	DATA 9
-	TEXT 'ALL CLEAR'
-	EVEN
-T203	DATA 13
-	TEXT 'AWESOME STAFF'
-	EVEN
-T204	DATA 4
-	TEXT '3M07'
-	EVEN
-S201	DATA TF3TI11,0,0,0
+	even
+t202	data 9
+	text 'all clear'
+	even
+t203	data 13
+	text 'awesome staff'
+	even
+t204	data 4
+	text '3m07'
+	even
+s201	data tf3ti11,0,0,0
 
-GAMEOVERINFO
-	DATA T211,T212,T213,T214,S211,4*8+10,0*8+3
-T211	DATA 9
+gameoverinfo
+	data t211,t212,t213,t214,s211,>4d00,>4b00,mapbossunknown
+t211	data 9
 	TEXT 'GAME OVER'
-	EVEN
-T212	DATA 7
-	TEXT 'NO MORE'
-	EVEN
-T213	DATA 4
-	TEXT 'NONE'
-	EVEN
-T214	DATA 4
-	TEXT '0M04'
-	EVEN
-S211	DATA TF3TI00,3,0,0
+	even
+t212	data 7
+	text 'no more'
+	even
+t213	data 4
+	text 'none'
+	even
+t214	data 4
+	text '0m04'
+	even
+s211	data tf3ti00,3,0,0
 
-SQUADINFO
-	DATA T221,T222,T223,T224,S221,4*8+10,0*8+3
-T221	DATA 11
+squadinfo
+	data t221,t222,t223,t224,s221,>2500,>7300,mapbossunknown
+t221	data 11
 	TEXT 'METAL SQUAD'
-	EVEN
-T222	DATA 9
-	TEXT 'TFIV WALL'
-	EVEN
-T223	DATA 9
-	TEXT 'EVIL CORE'
-	EVEN
-T224	DATA 4
-	TEXT '4M40'
-	EVEN
-S221	DATA TF3TI12,0,TF3TI13,0
+	even
+t222	data 9
+	text 'tfiv wall'
+	even
+t223	data 9
+	text 'evil core'
+	even
+t224	data 4
+	text '4m40'
+	even
+s221	data tf3ti12,0,tf3ti13,0
 
-TF4STAFFINFO
-	DATA T231,T232,T233,T234,S231,4*8+10,0*8+3
-T231	DATA 23
+tf4staffinfo
+	data t231,t232,t233,t234,s231,>2500,>7300,mapbossunknown
+t231	data 23
 	TEXT 'STAND UP AGAINST MYSELF'
-	EVEN
-T232	DATA 10
-	TEXT 'TFIV STAFF'
-	EVEN
-T233	DATA 18
-	TEXT 'MORE AWESOME STAFF'
-	EVEN
-T234	DATA 4
-	TEXT '1M49'
-	EVEN
-S231	DATA TF3TI12,0,TF3TI13,0
+	even
+t232	data 10
+	text 'tfiv staff'
+	even
+t233	data 18
+	text 'more awesome staff'
+	even
+t234	data 4
+	text '1m49'
+	even
+s231	data tf3ti12,0,tf3ti13,0
 
 *****************
 * Keyboard
@@ -1306,10 +1349,10 @@ stlp2
 	b *r11
 	
 * place crosshair sprites
-* R6 - row (world map only)
-* r7 - column (world map only)
-* r13 - row offset
-* r14 - column offset
+* R6 - row (screen coordinates)
+* r7 - column (screen coordinates)
+* r13 - row offset for top
+* r14 - column offset for left
 drawcrosshairs
 	li r0,>5b00
 	SWPB R0
@@ -1321,7 +1364,6 @@ drawcrosshairs
 	li r2,>0800		* dark red
 
 	mov r13,r0		* first row
-	a r14,r7
 	swpb r0
 	swpb r7
 	movb r0,*r8		* row
@@ -1344,11 +1386,9 @@ drawcrosshairs
 	movb r1,*r8		* char
 	movb r2,*r8		* color
 	swpb r7
-	s r14,r7
 
 	li r1,>7800		* horizontal beam (3 of these)
 	mov r14,r0		* first column
-	a r13,r6
 	swpb r0
 	swpb r6
 	movb r6,*r8		* row
@@ -1366,9 +1406,170 @@ drawcrosshairs
 	movb r1,*r8		* char
 	movb r2,*r8		* color
 	swpb r6
-	s r13,r6
 	
 	b *r11
+	
+	
+*************
+* new music on briefing screen
+* r5 - index (x2) into music table
+newmusic
+	mov r11,r10
+
+* load new crosshair target
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	
+	mov @10(r1),@crosshairtar		* crosshair row
+	mov @12(r1),@crosshairtac		* crosshair column
+
+* calculate new crosshair movement speeds - we want to get there in 3 seconds or so
+* we can just divide, with fixed point we should get there... hopefully ;)
+* the problem is, div is unsigned, so we need to make sure it's positive and fix sign later
+	li r0,180						* three seconds
+	clr r1							* msw of row
+	mov @crosshairtar,r2			* target row
+	s @crosshairrow,r2				* current row
+	jgt nm1
+* negative version	
+	neg r2							* make it positive
+	div r0,r1						* divide r0 into r1, result in r1, remainder in r2
+	neg r1							* make it negative
+	jmp nm2
+nm1
+* positive version
+	div r0,r1
+nm2
+	mov r1,@crosshairspr			* row speed
+
+	clr r1							* msw of col
+	mov @crosshairtac,r2			* target col
+	s @crosshaircol,r2				* current col
+	jgt nm3
+* negative version	
+	neg r2							* make it positive
+	div r0,r1						* divide r0 into r1, result in r1, remainder in r2
+	neg r1							* make it negative
+	jmp nm4
+nm3
+* positive version
+	div r0,r1
+nm4
+	mov r1,@crosshairspc			* column speed
+
+* clear text box
+	li r0,>5800+(5*32)+17
+	li r3,8
+nm5
+	clr r1
+	li r2,14
+	bl @vmbs
+	ai r0,32
+	dec r3
+	jne nm5
+	
+* load pointers to text information
+	clr @statusline					* reset back to song name
+	clr @textline					* first line of text
+	li r0,txtstage					* current character
+	mov *r0+,@textcount				* characters left in line
+	mov r0,@textptr					* address of next character
+	li r0,1
+	mov r0,@textdelay				* 1 frame to appear
+	li r0,>5800+(6*32)+17			* VDP address
+	mov r0,@textvdp
+
+* load new portrait - this one is a bit tricky as we have one row in group 2, and the rest in group 3
+* fortunately, the top row always counts up sequentially from 1 (we are relying on that), so we can
+* just copy the first 16 characters blindly in at char 240, and remap that first row
+* we're going to redraw the whole thing, so no need to clear it first
+* we didn't save R1, so look it up again
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+
+	mov @14(r1),r0					* page for the portrait
+	mov r0,*r0						* map it in
+	
+* just copy 16 characters blindly to character 240
+	li r0,>0F80						* pattern
+	mov @>6004,r1
+	li r2,128
+	bl @vmbw
+	
+	li r0,>2F80						* color
+	mov @>6002,r1
+	li r2,128
+	bl @vmbw
+
+* now load the 16 characters to the grid - adding 240 as we go and ignoring 0 (becomes >09)
+	li r0,>5800+(15*32)+17
+	mov @>6008,r1					* address of map data
+	bl @vdpwa
+	li r2,14						* 14 columns
+nm6
+	movb *r1+,r4					* get byte
+	jeq nm7							* if zero
+	ai r4,>f000						* add 240
+	jmp nm8
+nm7
+	li r4,>0900						* background char
+nm8
+	movb r4,*r8						* write to VDP
+	dec r2
+	jne nm6
+
+* then we can load the whole bit for group 3 at character 77 (this kills yellow text, which we don't use)
+* pretty much the same loop here, but we add 77 and it's 6 rows long
+	li r0,>1268						* pattern
+	mov @>6004,r1
+	mov @>6000,r2					* all the bytes
+	bl @vmbw
+	
+	li r0,>3268						* color
+	mov @>6002,r1
+	mov @>6000,r2					* all the bytes
+	bl @vmbw
+
+* now load the characters to the grid - adding 77 as we go and ignoring 0 (becomes >09)
+	li r3,6							* 6 rows
+	li r0,>1800+(16*32)+16
+	mov @>6008,r1					* address of map data
+	ai r1,14						* skip the first row
+	
+nm9
+	bl @vdpwa
+	li r2,14						* 14 columns
+nm10
+	movb *r1+,r4					* get byte
+	jeq nm11						* if zero
+	ai r4,>4D00						* add 77
+	jmp nm12
+nm11
+	li r4,>0900						* background char
+nm12
+	movb r4,*r8						* write to VDP
+	dec r2
+	jne nm10
+	
+	ai r0,32						* next row
+	dec r3
+	jne nm9
+
+* load new song and start playing
+* we didn't save R1, so look it up again
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	mov @8(r1),r1					* address of song data
+	mov *r1+,r15					* save the song bank
+	mov *r1+,r2						* song index
+	mov *r1+,@nextsong				* next song, if any
+	mov *r1,@nextsongidx			* and save its index too
+	
+	mov r0,*r15						* bank in the song
+	li r1,>6000
+	bl @StartSong					* r2 was already loaded above
+
+	b *r10
 
 ********************* MAIN CODE HERE **********************
 
@@ -1659,8 +1860,8 @@ cpmapl1
 	
 * okay, static text is up, initialize our world and the music
 	clr r5						* world (make sure to step by 2!)
-	li r13,(3*8)-1+4			* row offset for sprite (to make the edges line up, NOT the center!)
-	li r14,(9*8)+8				* col offset for sprite (to make the edges line up, NOT the center!)
+	li r13,27					* row offset for sprite (to make the edges line up, NOT the center!)
+	li r14,80					* col offset for sprite (to make the edges line up, NOT the center!)
 	
 	li r15,tf3ti01
 	mov r0,*r15					* page it in
@@ -1758,10 +1959,8 @@ selectover
 	li r2,768
 	bl @vmbw
 	
-	li r13,(5*8)-1+4		* update the offsets for this map (row)
-	li r14,(1*8)+8			* col
-	li r6,>0400
-	li r7,>0800				* current row and col for crosshairs - they move now (0,0 isn't legal)
+	li r6,>1000
+	li r7,>1000				* current row and col for crosshairs - they move now (0,0 isn't legal)
 	mov r6,@crosshairrow
 	mov r7,@crosshaircol
 
@@ -1774,33 +1973,198 @@ selectover
 	
 	clr @statusline			* index for the status line (changed by AID)
 	
-	ai r5,6					* finally, add 6 to the selected music, to skip null, title and stage select
-	
-	
-	
-
-
-	
-	
-	
-
-
-
-	
-	
-	
-	
-	
-
-	
-
-* temp code - change screen	color so I know it's done
-	li r0,>8733
+* load up the sprites for the weapon select and targeting (I might delete targeting)
+	li r0,>5b1c
 	bl @vdpwa
-lp
+	li r0,>0778
+	movb r0,*r8
+	swpb r0
+	movb r0,*r8
+	li r0,>700F
+	movb r0,*r8
+	swpb r0
+	movb r0,*r8
+	
+	li r0,>84b0
+	movb r0,*r8
+	swpb r0
+	movb r0,*r8
+	li r0,>7C07
+	movb r0,*r8
+	swpb r0
+	movb r0,*r8
+	
+	ai r5,6					* finally, add 6 to the selected music, to skip null, title and stage select
+	bl @newmusic
+
+* and finally, here's the main loop	
+mainloop
 	clr r4
-	bl @delay
-	jmp lp
+	bl @delay				* handle music and quit
+
+* move crosshairs and draw them
+	a @crosshairspr,@crosshairrow
+	a @crosshairspc,@crosshaircol
+	cb @crosshairrow,@crosshairtar
+	jne mlp1
+	clr @crosshairspr		* row target reached
+mlp1
+	cb @crosshaircol,@crosshairtac
+	jne mlp2
+	clr @crosshairspc		* col target reached
+mlp2
+	li r13,43				* offsets for this map (row)
+	li r14,16				* col
+	mov @crosshairrow,r6
+	srl r6,8
+	mov @crosshaircol,r7
+	srl r7,8
+	bl @drawcrosshairs		* put it on the screen
+
+* clear status line (can we afford to redraw status line every frame?)
+	li r0,>1800+(23*32)
+	clr r1
+	li r2,32
+	bl @vmbs
+
+* draw status line
+	mov @statusline,r1				* which row are we showing?
+	mov @STATUSTEXT(r1),r1			* get the pointer
+	jne mlp3
+	
+* display the song title
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	mov *r1,r1						* pointer to title data
+	
+mlp3
+	mov *r1+,r2						* size in characters (r1 now points at actual text)
+	li r0,32						* calculate a centered address (start with *2 for easier math)
+	s r2,r0
+	srl r0,1
+	ai r0,>1800+(23*32)
+	bl @showtext
+
+* draw next text character
+	dec @textdelay					* count down text delay (this may wrap around at the end, that's okay)
+	jne mlp4						* not ready
+	
+	mov @textptr,r1					* get the byte pointer, if any
+	jeq mlp4						* nope, there isn't one
+	
+	mov @textvdp,r0
+	li r2,1
+	bl @showtext
+	li r1,>0a00
+	movb r1,*r8						* draw the cursor
+	
+	inc @textptr
+	inc @textvdp
+	li r0,4
+	mov r0,@textdelay
+	dec @textcount
+	jne mlp4
+	
+* we finished a row of text, so work out the next one
+* clear the cursor first
+	mov @textvdp,r0
+	clr r1
+	bl @vsbw
+
+	inct @textline
+	mov @textline,r1
+	mov @TEXTFCTNS(r1),r1
+	jeq mlp6
+	b *r1
+
+mlp6
+* no more text - clear the pointer
+	clr @textptr
+	jmp mlp4
+	
+txtfctn1
+	li r0,>5800+(6*32)+17
+	li r1,txtstage
+	jmp mlp5
+	
+txtfctn2
+	li r0,>5800+(7*32)+19
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	mov @2(r1),r1
+	jmp mlp5
+	
+txtfctn3
+	li r0,>5800+(8*32)+17
+	li r1,txttarget
+	jmp mlp5
+	
+txtfctn4
+	li r0,>5800+(9*32)+19
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	mov @4(r1),r1
+	jmp mlp5
+	
+txtfctn5
+	li r0,>5800+(10*32)+17
+	li r1,txtduration
+	jmp mlp5
+	
+txtfctn6
+	li r0,>5800+(11*32)+19
+	mov r5,r1						* song index
+	mov @songinfo(r1),r1			* table for this song
+	mov @6(r1),r1
+	
+mlp5
+	mov r0,@textvdp
+	mov *r1+,@textcount
+	mov r1,@textptr
+
+mlp4
+* check for end of music (make sure we ALSO check that text is done drawing)
+	movb @songNote+7,r0			* check if music is stopped
+	andi r0,>0100
+	jne mlp7
+	
+* check if there's a next song to play
+	mov @nextsong,r15
+	jeq mlp8
+
+* there IS a next song	
+	mov r15,*r15				* map it in
+	li r1,>6000
+	mov @nextsongidx,r2			* index
+	bl @startsong				* init it
+	
+	clr @nextsong				* and make sure we don't play it again
+	jmp mlp7
+
+mlp8
+* music is over, but is the text?
+	mov @textptr,r0
+	jne mlp7
+
+* all done, hit the next tune
+	inct r5
+	mov @SONGINFO(r5),r0
+	jne mlp9
+	li r5,2					* wrap around
+mlp9
+	bl @newmusic
+	
+mlp7
+* check keys
+
+	
+	
+
+
+
+	
+	
+	b @mainloop
 	
 	END
 	

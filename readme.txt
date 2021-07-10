@@ -40,7 +40,6 @@ crosshairs start at 0,0 offset, and move at a scaled rate (use 8.8 fixed point) 
 	- if player presses FCTN-=, then exit (try to check this everywhere)
 	- if player presses 7, assume it was alt-7 and cycle text through help texts:
 		- "song title"
-		- PRESS AID FOR HELP
 		- MUSIC PLAYER BY TURSI
 		- TF3 BY TECHNOSOFT
 		- N FOR NEXT SONG
