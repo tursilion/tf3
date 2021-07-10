@@ -9,7 +9,6 @@ Then the title page (Playing title music)
 	
 	First, load the background
 	After a moment, flicker the ship in. To save characters crossing boundaries, flicker in directly left and right instead of diagonally. The ship only has 4 rows in the middle segment (and it's just 2 characters wide - the tailfin)
-
 	Next, the title is supposed to slide in, this is all of segment 1 and 3 rows of segment 2. Don't MOVE parts (Genesis did that with sprites anyway), but draw the characters in alternating vertical stripes four characters wide - only pattern table updates so the border crossing is not a concern.
 	Finally, the 'III' is supposed to dither in, it's just 6 by 4 characters, but to make it simple (since we don't know how magellen mapped the colors) we'll just dither in a character at time.
 	- if player presses FCTN-=, then exit (try to check this everywhere)
@@ -47,7 +46,7 @@ crosshairs start at 0,0 offset, and move at a scaled rate (use 8.8 fixed point) 
 		- N FOR NEXT SONG
 		- P FOR PREVIOUS SONG (previous song can go back to title, but does not change the screen!!)
 		- SPACE TO PAUSE
-	- when song ends, advance to the next song (or restart if finished)
+	- when song ends, advance to the next song (or restart if finished) (DO NOT ADVANCE IF TEXT IS STILL DRAWING)
 	- when Cerberus is reached, erase the sun and replace with the orn base map - it should fit entirely in bank 2 so can replace chars
 		- no need to redraw the sun if go back or loops
 	
