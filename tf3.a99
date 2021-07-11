@@ -580,7 +580,7 @@ s231	data tf3ti14,0,0,0
 *****************
 * Keyboard
 * No input, return on R1 LSB (FF = no key)
-* this version HAS got debounce (3 frames)
+* this version HAS got debounce (1 extra frame, so 1/30th second)
 * this version ignores the ALT key (the default version returns it as ascii 1)
 * this is so arrow keys (fctn/e/s/d/x) just show as letters, for Classic99 ;)
 KSCAN	CLR R0
@@ -635,7 +635,7 @@ debounce
 		
 newkey
 		mov r1,@debouncekey		* set up new debounce
-		li r1,3					* debounce time in frames
+		li r1,1					* debounce time in frames
 		mov r1,@debouncecnt
 		li r1,>00ff
 		B *R11
