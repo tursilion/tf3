@@ -73,6 +73,8 @@ retSave
 * tf3 stuff
 SCRNBUF	BSS 11*32		* buffer used for mixing characters on the title page
 OLDKEY bss 2			* remember last key pressed
+DEBOUNCEKEY bss 2		* current key for debounce
+DEBOUNCECNT bss 2		* current countdown for debounce
 
 * briefing screen
 crosshairrow bss 2		* current row of the crosshair in 8.8 fixed point
@@ -88,6 +90,7 @@ textvdp bss 2			* VDP address of next output char
 textcount bss 2			* number of characters left to print
 textdelay bss 2			* delay frames left before next character
 statusline bss 2		* index of status line for AID (0 = song title)
+statuscnt bss 2			* countdown for automatically updating the status line
 nextsong bss 2			* page of next song for tunes with two parts, 0 if none
 nextsongidx bss 2		* index for the next song
 
@@ -156,7 +159,7 @@ txtduration
 TEXTFCTNS	DATA txtfctn1,txtfctn2,txtfctn3,txtfctn4
 			DATA txtfctn5,txtfctn6,0
 	
-STATUSTEXT	DATA 0,STAT1,STAT2,STAT3,STAT4,STAT5
+STATUSTEXT	DATA 0,STAT1,STAT2,STAT3,STAT4,STAT5,0
 STAT1	
 	data 21
 	text 'MUSIC PLAYER BY TURSI'
@@ -211,8 +214,8 @@ selectinfo
 t11	data 16
 	TEXT 'BEYOND THE PEACE'
 	even
-t12	data 12
-	text 'stage select'
+t12	data 6
+	text 'select'
 	even
 t13	data 6
 	text 'choose'
@@ -577,7 +580,9 @@ s231	data tf3ti14,0,0,0
 *****************
 * Keyboard
 * No input, return on R1 LSB (FF = no key)
-* Warning: no debounce - that may be a problem on real hardware
+* this version HAS got debounce (3 frames)
+* this version ignores the ALT key (the default version returns it as ascii 1)
+* this is so arrow keys (fctn/e/s/d/x) just show as letters, for Classic99 ;)
 KSCAN	CLR R0
 KEYLP1	LI R12,>0024		* column select
 		LDCR R0,3
@@ -592,17 +597,47 @@ KSHIFT	SRL R1,1
 		JMP KSHIFT
 KFND	CI R2,8				* check for overflow (no key)
 		JL GOTKEY
+KEEPLOOKING		
 		AI R0,>0100			* next column
 		CI R0,>0600
 		JNE KEYLP1
+		
 		LI R1,>00FF			* no key
+		mov r1,@debouncekey		* clear old debounce
 		B *R11
-GOTKEY	SWPB R0
+GOTKEY	
+* ignore alt
+		mov r0,r0
+		jne NOTALT
+		ci r2,4
+		jeq KEEPLOOKING
+NOTALT
+		
+		SWPB R0
 		SLA R0,3
 		A R2,R0
 		ai r0,KEYMAP
 		MOVB *R0,R1			* ASCII code
 		SRL R1,8			* shift and clear MSB
+		
+* check debounce
+		c r1,@DEBOUNCEKEY	* check debounce
+		jne newkey
+		
+		mov @debouncecnt,r0		* check count
+		jne debounce
+		b *r11					* go ahead and return it
+		
+debounce
+		dec @debouncecnt
+		li r1,>00FF
+		b *r11
+		
+newkey
+		mov r1,@debouncekey		* set up new debounce
+		li r1,3					* debounce time in frames
+		mov r1,@debouncecnt
+		li r1,>00ff
 		B *R11
 
 * By columns, then rows. 8 Rows per column. No shift states
@@ -1470,6 +1505,8 @@ nm5
 	
 * load pointers to text information
 	clr @statusline					* reset back to song name
+	li r0,300						* about 5 seconds
+	mov r0,@statuscnt				* countdown
 	clr @textline					* first line of text
 	li r0,txtstage					* current character
 	mov *r0+,@textcount				* characters left in line
@@ -1646,14 +1683,6 @@ sclp
 * that's good, now we can turn on the screen and start the music
 	li r0,>81E3
 	bl @VDPWA
-	
-	
-*********************************************
-		b @startss
-*********************************************
-		
-	
-	
 	
 * first, a brief pause before the ship appears
 	li r4,60
@@ -1973,6 +2002,8 @@ selectover
 	clr @textdelay			* data for displaying text in box
 	
 	clr @statusline			* index for the status line (changed by AID)
+	li r0,300				* about 5 seconds
+	mov r0,@statuscnt		* countdown
 	
 * load up the sprites for the weapon select and targeting (I might delete targeting)
 	li r0,>5b1c
@@ -1995,7 +2026,8 @@ selectover
 	swpb r0
 	movb r0,*r8
 	
-	ai r5,6					* finally, add 6 to the selected music, to skip null, title and stage select
+	sla r5,1				* multiply by 2 to account for bosses
+	ai r5,6					* then add 6 to the selected music, to skip null, title and stage select
 	bl @newmusic
 
 * and finally, here's the main loop	
@@ -2027,6 +2059,18 @@ mlp2
 	clr r1
 	li r2,32
 	bl @vmbs
+	
+* countdown status line
+	dec @statuscnt
+	jne mlp2a
+	li r1,300
+	mov r1,@statuscnt
+	inct @statusline
+	mov @statusline,r1
+	mov @STATUSTEXT(r1),r0
+	jne mlp2a
+	clr @statusline
+mlp2a
 
 * draw status line
 	mov @statusline,r1				* which row are we showing?
@@ -2158,14 +2202,140 @@ mlp9
 	
 mlp7
 * check keys
-
+* we support P, N, 1,2,3,4,7, space
+	bl @kscan
+	c r1,@oldkey
+	jne mlpnewkey
+	b @mainloop
 	
+mlpnewkey
+	mov r1,@oldkey
+	ci r1,>0050				* P
+	jne mlp10
 	
+* previous song
+	dect r5
+	mov @SONGINFO(r5),r0
+	jne song1
+	li r5,48
+song1
+	bl @StopSong
+	bl @mute
+	bl @newmusic
+	b @mainloop
 
+mlp10
+	ci r1,>004E				* N
+	jne mlp11
 
+* next song	
+	inct r5
+	mov @SONGINFO(r5),r0
+	jne song2
+	li r5,2
+song2
+	bl @StopSong
+	bl @mute
+	bl @newmusic
+	b @mainloop
 
+mlp11
+	ci r1,>0031				* 1
+	jne mlp12
 	
+* lift 1
+	li r0,>5800+(2*32)+27
+	bl @vdpwa
+	li r1,>2800
+	movb r1,*r8
+	swpb r1
+	movb r1,*r8
+	movb r1,*r8
+	movb r1,*r8
+	b @mainloop
+
+mlp12
+	ci r1,>0032				* 2
+	jne mlp13
 	
+* lift 2
+	li r0,>5800+(2*32)+27
+	bl @vdpwa
+	li r1,>2800
+	movb r1,*r8
+	movb r1,*r8
+	swpb r1
+	movb r1,*r8
+	movb r1,*r8
+	b @mainloop
+
+mlp13
+	ci r1,>0033				* 3
+	jne mlp14
+	
+* lift 3
+	li r0,>5800+(2*32)+27
+	bl @vdpwa
+	li r1,>2800
+	movb r1,*r8
+	movb r1,*r8
+	movb r1,*r8
+	swpb r1
+	movb r1,*r8
+	b @mainloop
+
+mlp14
+	ci r1,>0034				* 4
+	jne mlp15
+	
+* lift 4
+	li r0,>5800+(2*32)+27
+	bl @vdpwa
+	li r1,>2800
+	movb r1,*r8
+	movb r1,*r8
+	movb r1,*r8
+	movb r1,*r8
+	b @mainloop
+
+mlp15
+	ci r1,>0020				* space
+	jne mlp16
+	
+* change weapon
+	inc @weapon
+
+	li r0,>5b1d
+	bl @vdpwa
+	li r0,>8878
+	movb r0,*r8
+
+	mov @weapon,r1
+	ci r1,1
+	jeq weap1				* anything but 1, reset to zero
+	clr @weapon
+
+	li r0,>5b1d
+	bl @vdpwa
+	li r0,>7888
+	movb r0,*r8
+
+weap1
+	b @mainloop
+
+mlp16
+	ci r1,>0037				* 7 (AID)
+	jne mlp17
+
+* change status line - just a simple increment
+	inct @statusline
+	mov @statusline,r1
+	mov @STATUSTEXT(r1),r0
+	jne mlp18
+	clr @statusline
+mlp18
+	
+mlp17
 	b @mainloop
 	
 	END
