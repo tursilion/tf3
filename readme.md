@@ -1,8 +1,8 @@
 Thunder Force III Tribute for TI-99/4A v100
 ===========================================
 
-![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_1.jpg)
-![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_2.jpg)
+![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_1.png)
+![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_2.png)
 
 This is a tribute to the Sega Genesis/Mega Drive game Thunder Force III.
 
