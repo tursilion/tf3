@@ -1,8 +1,4 @@
-Thunder Force III Tribute for TI-99/4A v100
-===========================================
-
-![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_1.png)
-![Screenshot](https://github.com/tursilion/tf3/raw/master/dist/tf3_2.png)
+v100
 
 This is a tribute to the Sega Genesis/Mega Drive game Thunder Force III.
 
@@ -16,13 +12,4 @@ Most of the tunes came out pretty good! I'm most pleased with Ellis and Metal Sq
 
 The final result is a 256KB non-inverted cartridge image that should work on both hardware and most emulation... it doesn't do anything fancy.
 
-Download the latest release zip here: [https://github.com/tursilion/tf3/raw/master/dist/tf3_8.bin](https://github.com/tursilion/tf3/raw/master/dist/tf3_8.bin)
-
 - Complete video here: [https://www.youtube.com/watch?v=Wtwhu_ETzQ0](https://www.youtube.com/watch?v=Wtwhu_ETzQ0)
-
-Want to donate?
----------------
-
-- Click here for [Ko-Fi](https://ko-fi.com/tursilion)...
-- Alternately, there's my [Amazon Wishlist](http://www.amazon.com/gp/registry/2AFCOAM5DD1L6/ref=cm_aya_wl/103-5991996-6483001)
-
