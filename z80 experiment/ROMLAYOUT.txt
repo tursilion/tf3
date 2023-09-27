@@ -1,0 +1,48 @@
+Like the TI version, most of this 512k cart is empty space.
+
+There is more than 128k of data, so 256k is the smallest possible
+size. But the TI cart cheats and dedicates an entire page to single
+elements. The Coleco pages are 16k instead of 8k, so for now, just
+to get it up and running I'm doing the same and that means doubling
+again to 512k. At least it'll zip up nicely. ;)
+
+Also leaving the first 2 pages unused means it should work fine on
+the Phoenix, which has only 512k - 32k (for the SGM RAM) available.
+
+Since the raw data headers are expected at the start of the page,
+I'm not using my usual banking packer for this, and doing it by
+hand instead.
+
+FFE0    unused - reserved for Phoenix
+FFE1    unused - reserved for Phoenix
+FFE2	unused
+FFE3    unused
+FFE4	TF3TI00
+FFE5	TF3TI01
+FFE6	TF3TI02
+FFE7	TF3TI03
+FFE8	TF3TI04
+FFE9	TF3TI05
+FFEA	TF3TI06
+FFEB	TF3TI07
+FFEC	TF3TI08
+FFED	TF3TI09
+FFEE	TF3TI10
+FFEF	TF3TI11
+FFF0	map_boss_unknown
+FFF1	map_bosscerberus
+FFF2	map_bossfish
+FFF3	map_bossfort
+FFF4	map_bossgargoyle
+FFF5	map_bosslobster
+FFF6	map_bossvulcan
+FFF7	map_briefing
+FFF8	map_briefingornbase
+FFF9	map_titleThird1
+FFFA	map_titleThird2
+FFFB	map_titleThird3
+FFFC	TF3TI12
+FFFD	TF3TI13
+FFFE	TF3TI14
+FFFF	Fixed bank for program
+
